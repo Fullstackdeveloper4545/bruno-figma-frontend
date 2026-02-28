@@ -6,3 +6,14 @@
   background-repeat: no-repeat;
 
 }
+
+.mySwiper{
+  padding:20px;
+}
+
+.category-card-bg{
+  background-image: url("./assets/sneakers.jpg");
+  background-size: 100% 100%;
+  background-position: center; 
+  background-repeat: no-repeat;
+}

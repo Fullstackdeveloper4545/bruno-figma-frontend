@@ -1,8 +1,13 @@
 import React, { useState } from 'react'
-
+import { Swiper, SwiperSlide } from 'swiper/react'
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
+import { Pagination, Navigation } from 'swiper/modules'
 import './App.css'
 import Navbar from './Components/layout/Navbar'
 import ProductCard from './Components/UI/ProductCard'
+import CategoryCard from './Components/UI/CategoryCard'
 
 function App() {
 
@@ -24,24 +29,70 @@ function App() {
 
       {/* section */}
 
-      <section className='mt-[10vh]'>
+      <section className='mt-[10vh] flex flex-col items-center '>
         <div className='text-center'>
           <h1 className='text-[24px] '>Escolhas dos atletas</h1>
           <p className='py-4'>Os modelos e equipamentos mais procurados por quem corre todos os dias - estrada, trilho e ultra trail.</p>
         </div>
 
-        <div className='flex justify-center gap-4 mt-8'>
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-          <ProductCard />
-
-          
+        <div className='w-[95vw] mx-auto'>
+          <Swiper
+            slidesPerView={5}
+            spaceBetween={0}
+            pagination={{
+              clickable: true,
+            }}
+            navigation={true}
+            modules={[Pagination, Navigation]}
+            className="mySwiper"
+          >
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+            <SwiperSlide>
+              <ProductCard />
+            </SwiperSlide>
+          </Swiper>
         </div>
+            <button className='py-2 px-10 bg-black text-white my-10'>COMPRAR AGORA</button>
+      </section>
 
+
+      <section >
+        <h1 className='text-[24px] text-center'>Tudo o que precisas para correr melhor</h1>
+        <div className='flex flex-wrap justify-center gap-4 mt-10'>
+            <CategoryCard />
+            <CategoryCard />
+            <CategoryCard />      
+            <CategoryCard />
+            <CategoryCard />
+            <CategoryCard />
+        
+        </div>
       </section>
     </>
   )
