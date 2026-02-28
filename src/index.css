@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+    --black:#000000;
+    --white:#ffffff;
+
+  /* ===================== */
+  /* BLUE - Variant 1 */
+  /* ===================== */
+  --blue-1-light: #f0f4f5;
+  --blue-1-light-hover: #e9eff0;
+  --blue-1-light-active: #d1dee0;
+
+  --blue-1: #6c939b;
+  --blue-1-hover: #61848c;
+  --blue-1-active: #56767c;
+
+  --blue-1-dark: #516e74;
+  --blue-1-dark-hover: #41585d;
+  --blue-1-dark-active: #314246;
+  --blue-1-darker: #263336;
+
+
+  /* ===================== */
+  /* GREY */
+  /* ===================== */
+  --grey-light: #e8e8e8;
+  --grey-light-hover: #dddddd;
+  --grey-light-active: #b8b8b8;
+
+  --grey: #191919;
+  --grey-hover: #171717;
+  --grey-active: #141414;
+
+  --grey-dark: #131313;
+  --grey-dark-hover: #0f0f0f;
+  --grey-dark-active: #0b0b0b;
+  --grey-darker: #090909;
+
+
+  /* ===================== */
+  /* BLUE - Variant 2 */
+  /* ===================== */
+  --blue-2-light: #e6f2f5;
+  --blue-2-light-hover: #d9ecef;
+  --blue-2-light-active: #b1d8df;
+
+  --blue-2: #028198;
+  --blue-2-hover: #027489;
+  --blue-2-active: #02677a;
+
+  --blue-2-dark: #026172;
+  --blue-2-dark-hover: #014d5b;
+  --blue-2-dark-active: #013a44;
+  --blue-2-darker: #012d35;
+
+
+  /* ===================== */
+  /* BLUE - Variant 3 */
+  /* ===================== */
+  --blue-3-light: #e9eaeb;
+  --blue-3-light-hover: #dee0e0;
+  --blue-3-light-active: #bfbfbf;
+
+  --blue-3: #243032;
+  --blue-3-hover: #202b2d;
+  --blue-3-active: #1d2628;
+
+  --blue-3-dark: #1b2426;
+  --blue-3-dark-hover: #161d1e;
+  --blue-3-dark-active: #101616;
+  --blue-3-darker: #0d1112;
+}
