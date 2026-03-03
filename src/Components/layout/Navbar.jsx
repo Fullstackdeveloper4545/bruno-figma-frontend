@@ -58,16 +58,21 @@ const Navbar = () => {
                                 <Link to="/blog" onClick={() => setOpen(false)}>Blog</Link>
                                 <Link to="/Contactos" onClick={() => setOpen(false)}>Contactos</Link>
                             </div>
-                            <div className='flex flex-col gap-3 pt-2 border-t border-gray-300'>
-                                <Link to="/sapatilhas" onClick={() => setOpen(false)}>Sapatilhas</Link>
-                                <Link to="/roupa" onClick={() => setOpen(false)}>Roupa</Link>
-                                <Link to="/relogios-gps" onClick={() => setOpen(false)}>RelÃ³gios GPS</Link>
-                                <Link to="/equipamento-corrida" onClick={() => setOpen(false)}>Equipamento de Corrida</Link>
-                                <Link to="/nutricao-desportiva" onClick={() => setOpen(false)}>NutriÃ§Ã£o Desportiva</Link>
-                                <Link to="/hyrox" onClick={() => setOpen(false)}>Hyrox</Link>
-                                <Link to="/marcas" onClick={() => setOpen(false)}>Marcas</Link>
-                                <Link to="/saldos" onClick={() => setOpen(false)}>Saldos</Link>
-                            </div>
+                            <details className='pt-2 border-t border-gray-300'>
+                                <summary className='cursor-pointer select-none list-none font-medium'>
+                                    Categorias
+                                </summary>
+                                <div className='mt-3 flex flex-col gap-3'>
+                                    <Link to="/sapatilhas" onClick={() => setOpen(false)}>Sapatilhas</Link>
+                                    <Link to="/roupa" onClick={() => setOpen(false)}>Roupa</Link>
+                                    <Link to="/relogios-gps" onClick={() => setOpen(false)}>RelÃ³gios GPS</Link>
+                                    <Link to="/equipamento-corrida" onClick={() => setOpen(false)}>Equipamento de Corrida</Link>
+                                    <Link to="/nutricao-desportiva" onClick={() => setOpen(false)}>NutriÃ§Ã£o Desportiva</Link>
+                                    <Link to="/hyrox" onClick={() => setOpen(false)}>Hyrox</Link>
+                                    <Link to="/marcas" onClick={() => setOpen(false)}>Marcas</Link>
+                                    <Link to="/saldos" onClick={() => setOpen(false)}>Saldos</Link>
+                                </div>
+                            </details>
                         </div>
                     )}
 
