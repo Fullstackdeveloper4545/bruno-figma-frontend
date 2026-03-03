@@ -1,4 +1,9 @@
 import React, { useState } from 'react'
+import { Swiper, SwiperSlide } from 'swiper/react'
+import 'swiper/css'
+import 'swiper/css/pagination'
+import 'swiper/css/navigation'
+import { Pagination, Navigation } from 'swiper/modules'
 import Navbar from './Components/layout/Navbar'
 import Footer from './Components/layout/Footer'
 import productImage from './assets/product-card-test-image.png'
@@ -155,15 +160,40 @@ function ProductDetailsPage() {
 
       <div className='w-[90vw] mx-auto mt-14'>
           <h3 className='text-[16px] font-semibold mb-6'>Produtos Recomendados</h3>
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8'>
-            {[
-              { title: 'Asics Superblast 2', color: 'Verde Vital e Preto' },
-              { title: 'Hoka Mach 6 W - JTL', color: 'Verde' },
-              { title: 'Adizero Takumi SEN 10 W', color: 'Azul' },
-              { title: 'Adizero Adios Pro 4 W', color: 'Branco e Laranja' },
-            ].map((p, idx) => (
-              <ProductCard key={idx} title={p.title} color={p.color} price='00?' image={productImage} />
-            ))}
+          <div>
+            <Swiper
+              slidesPerView={1}
+              spaceBetween={12}
+              breakpoints={{
+                640: { slidesPerView: 2, spaceBetween: 12 },
+                768: { slidesPerView: 3, spaceBetween: 12 },
+                1024: { slidesPerView: 5, spaceBetween: 0 },
+              }}
+              pagination={{ clickable: true }}
+              navigation={true}
+              modules={[Pagination, Navigation]}
+              className='mySwiper'
+            >
+              {[
+                { title: 'Asics Superblast 2', color: 'Verde Vital e Preto' },
+                { title: 'Hoka Mach 6 W - JTL', color: 'Verde' },
+                { title: 'Adizero Takumi SEN 10 W', color: 'Azul' },
+                { title: 'Adizero Adios Pro 4 W', color: 'Branco e Laranja' },
+                { title: 'Adizero Adios Pro 4 W', color: 'Branco e Laranja' },
+                   { title: 'Asics Superblast 2', color: 'Verde Vital e Preto' },
+                { title: 'Hoka Mach 6 W - JTL', color: 'Verde' },
+                { title: 'Adizero Takumi SEN 10 W', color: 'Azul' },
+                { title: 'Adizero Adios Pro 4 W', color: 'Branco e Laranja' },
+                { title: 'Adizero Adios Pro 4 W', color: 'Branco e Laranja' },
+           
+            
+
+              ].map((p, idx) => (
+                <SwiperSlide key={idx}>
+                  <ProductCard title={p.title} color={p.color} price='00?' image={productImage} />
+                </SwiperSlide>
+              ))}
+            </Swiper>
           </div>
         </div>
       <Footer />
