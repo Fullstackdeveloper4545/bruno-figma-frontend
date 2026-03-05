@@ -1,10 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import logo from '../../assets/logo.png'
 import { Search, User, ShoppingCart, Menu, X } from 'lucide-react'
+import { cartEvents, getCartCount } from '../../lib/cart'
 
 const Navbar = () => {
     const [open, setOpen] = useState(false)
+    const [cartCount, setCartCount] = useState(0)
+
+    useEffect(() => {
+        const syncCartCount = () => setCartCount(getCartCount())
+        syncCartCount()
+        window.addEventListener('storage', syncCartCount)
+        window.addEventListener(cartEvents.updated, syncCartCount)
+        return () => {
+            window.removeEventListener('storage', syncCartCount)
+            window.removeEventListener(cartEvents.updated, syncCartCount)
+        }
+    }, [])
 
     return (
         <>
@@ -25,7 +38,14 @@ const Navbar = () => {
                         <div className='hidden md:flex w-1/12 justify-between'>
                             <Search />
                             <User />
-                            <ShoppingCart />
+                            <Link to='/cart' className='relative' aria-label='Open cart'>
+                                <ShoppingCart />
+                                {cartCount > 0 ? (
+                                    <span className='absolute -top-2 -right-2 min-w-4 h-4 rounded-full bg-black text-white text-[10px] px-1 flex items-center justify-center'>
+                                        {cartCount > 99 ? '99+' : cartCount}
+                                    </span>
+                                ) : null}
+                            </Link>
                         </div>
                         <button
                             className='md:hidden'
@@ -51,7 +71,14 @@ const Navbar = () => {
                             <div className='flex gap-6'>
                                 <Search />
                                 <User />
-                                <ShoppingCart />
+                                <Link to='/cart' className='relative' aria-label='Open cart' onClick={() => setOpen(false)}>
+                                    <ShoppingCart />
+                                    {cartCount > 0 ? (
+                                        <span className='absolute -top-2 -right-2 min-w-4 h-4 rounded-full bg-black text-white text-[10px] px-1 flex items-center justify-center'>
+                                            {cartCount > 99 ? '99+' : cartCount}
+                                        </span>
+                                    ) : null}
+                                </Link>
                             </div>
                             <div className='flex flex-col gap-3'>
                                 <Link to="/" onClick={() => setOpen(false)}>Sobre NÃ³s</Link>
