@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
 import { postJson, toApiUrl } from './lib/api'
 import { cartEvents, clearCart, getAppliedCoupon, getCartItems } from './lib/cart'
 
@@ -125,7 +125,9 @@ const CheckoutPage = () => {
           email: customerEmail,
         },
         callback_url: toApiUrl(webhookPath),
-        return_url: `${window.location.origin}/thank-you`,
+        return_url: `${window.location.origin}/thank-you?orderId=${encodeURIComponent(
+          String(createdOrder.id)
+        )}&email=${encodeURIComponent(customerEmail)}`,
       })
 
       if (checkout?.instructions) {
@@ -144,12 +146,26 @@ const CheckoutPage = () => {
           discount_total: discount,
           total,
           coupon_code: coupon?.code || null,
+          customer_email: customerEmail,
+          cart_items: cartItems.map((item) => ({
+            id: item.id,
+            name: item.name,
+            sku: item.sku || null,
+            qty: Number(item.qty || 0),
+            unitPrice: Number(item.unitPrice || 0),
+            image: item.image || null,
+          })),
         })
       )
 
       clearCart()
       setMessage('Order created and payment initiated successfully.')
-      navigate('/thank-you', { replace: true })
+      navigate(
+        `/thank-you?orderId=${encodeURIComponent(String(createdOrder.id))}&email=${encodeURIComponent(
+          customerEmail
+        )}`,
+        { replace: true }
+      )
     } catch (err) {
       const baseMessage = err instanceof Error ? err.message : 'Failed to submit checkout.'
       if (createdOrder?.order_number) {

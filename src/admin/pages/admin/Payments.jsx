@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { RefreshCw } from "lucide-react";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

@@ -9,13 +9,25 @@ const ProductCard = ({
   price = '00 EUR',
   oldPrice,
   discountLabel,
+  stockLabel,
   to,
 }) => {
+  const isOutOfStock = typeof stockLabel === 'string' && stockLabel.toLowerCase().includes('out of stock')
+
   const cardContent = (
     <>
       <div className='relative pb-8'>
         {discountLabel ? (
           <span className='absolute top-0 left-0 text-[12px] text-red-500'>{discountLabel}</span>
+        ) : null}
+        {stockLabel ? (
+          <span
+            className={`absolute top-0 right-0 rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.06em] ${
+              isOutOfStock ? 'bg-[#fee2e2] text-[#b91c1c]' : 'bg-[#fef3c7] text-[#92400e]'
+            }`}
+          >
+            {stockLabel}
+          </span>
         ) : null}
         <img src={image} alt={title} className='w-full' />
       </div>

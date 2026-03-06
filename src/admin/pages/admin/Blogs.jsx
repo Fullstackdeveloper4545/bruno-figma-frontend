@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

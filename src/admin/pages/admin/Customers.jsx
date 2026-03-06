@@ -1,5 +1,5 @@
 import { Ban, KeyRound } from "lucide-react";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

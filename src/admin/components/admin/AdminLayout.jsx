@@ -62,6 +62,7 @@ const formatNotificationTime = (value) => new Intl.DateTimeFormat("en-US", {
 const NOTIFICATION_POLL_INTERVAL_MS = 2e4;
 const INTEGRATION_STATUS_POLL_INTERVAL_MS = 3e4;
 const INTEGRATION_STATUS_EVENT = "admin:integration-settings-updated";
+const MODULES_UPDATED_EVENT = "admin:modules-updated";
 const LOW_STOCK_THRESHOLD = 10;
 const LOW_STOCK_LIMIT = 300;
 const MAX_NOTIFICATIONS = 40;
@@ -132,6 +133,21 @@ const navSections = [
     ]
   }
 ];
+const navItemModuleKey = {
+  "/admin/products": "product",
+  "/admin/categories": "product",
+  "/admin/attributes": "product",
+  "/admin/low-stock": "product",
+  "/admin/orders/total": "order",
+  "/admin/shipping": "shipping",
+  "/admin/invoices": "invoice",
+  "/admin/payments": "payment",
+  "/admin/discounts/coupons": "discount",
+  "/admin/reports": "report",
+  "/admin/customers": "customers",
+  "/admin/integrations": "integration",
+  "/admin/languages": "language",
+};
 const AdminLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -149,6 +165,7 @@ const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [integrationBadgeLabel, setIntegrationBadgeLabel] = useState("Integration Active");
+  const [modulesState, setModulesState] = useState({});
   const orderTrackingRef = useRef({
     initialized: false,
     orderIds: /* @__PURE__ */ new Set(),
@@ -244,6 +261,33 @@ const AdminLayout = () => {
     }
     return normalizedPath.startsWith(to);
   };
+  const isNavItemEnabled = useCallback(
+    (to) => {
+      const key = navItemModuleKey[to];
+      if (!key) return true;
+      return modulesState[key] !== false;
+    },
+    [modulesState]
+  );
+  const visibleNavSections = useMemo(
+    () =>
+      navSections
+        .map((section) => ({
+          ...section,
+          items: section.items.filter((item) => isNavItemEnabled(item.to)),
+        }))
+        .filter((section) => section.items.length > 0),
+    [isNavItemEnabled]
+  );
+  const pollModules = useCallback(async () => {
+    try {
+      const result = await adminApi.getSystemModules();
+      const payload = result?.modules && typeof result.modules === "object" ? result.modules : {};
+      setModulesState(payload);
+    } catch {
+      setModulesState({});
+    }
+  }, []);
   useEffect(() => {
     void pollNotifications();
     const intervalId = window.setInterval(() => {
@@ -253,6 +297,21 @@ const AdminLayout = () => {
       window.clearInterval(intervalId);
     };
   }, [pollNotifications]);
+  useEffect(() => {
+    void pollModules();
+    const onModulesUpdated = (event) => {
+      const payload = event?.detail?.modules;
+      if (payload && typeof payload === "object") {
+        setModulesState(payload);
+        return;
+      }
+      void pollModules();
+    };
+    window.addEventListener(MODULES_UPDATED_EVENT, onModulesUpdated);
+    return () => {
+      window.removeEventListener(MODULES_UPDATED_EVENT, onModulesUpdated);
+    };
+  }, [pollModules]);
   const pollIntegrationStatus = useCallback(async () => {
     try {
       const settings = await adminApi.getIntegrationSettings();
@@ -336,7 +395,7 @@ const AdminLayout = () => {
           </div>
         </SidebarHeader>
         <SidebarContent>
-          {navSections.map((section, sectionIndex) => <SidebarGroup key={section.label}>
+          {visibleNavSections.map((section, sectionIndex) => <SidebarGroup key={section.label}>
               <SidebarGroupLabel>{section.label}</SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
@@ -359,7 +418,7 @@ const AdminLayout = () => {
                     </SidebarMenuItem>)}
                 </SidebarMenu>
               </SidebarGroupContent>
-              {sectionIndex < navSections.length - 1 ? <SidebarSeparator /> : null}
+              {sectionIndex < visibleNavSections.length - 1 ? <SidebarSeparator /> : null}
             </SidebarGroup>)}
         </SidebarContent>
         <SidebarFooter>

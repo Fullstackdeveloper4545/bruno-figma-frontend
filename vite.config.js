@@ -7,13 +7,13 @@ import { fileURLToPath } from 'node:url'
 // https://vite.dev/config/
 const devApiTarget = process.env.VITE_DEV_API_TARGET || 'http://localhost:5000'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const brunoFrontendSrc = path.resolve(__dirname, '../bruno-frontend/src')
+const appSrc = path.resolve(__dirname, './src')
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@': brunoFrontendSrc,
+      '@': appSrc,
     },
     dedupe: ['react', 'react-dom'],
   },

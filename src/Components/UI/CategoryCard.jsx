@@ -1,6 +1,7 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
-const CategoryCard = ({ title = 'Sapatilhas', image = '', buttonText = 'COMPRAR' }) => {
+const CategoryCard = ({ title = 'Sapatilhas', image = '', buttonText = 'COMPRAR', to = '/products' }) => {
   const style = image ? { backgroundImage: `url(${image})` } : undefined
 
   return (
@@ -10,7 +11,9 @@ const CategoryCard = ({ title = 'Sapatilhas', image = '', buttonText = 'COMPRAR'
         style={style}
       >
         <h1 className='text-[32px] text-white'>{title}</h1>
-        <button className='text-[14] bg-white py-2 px-10'>{buttonText}</button>
+        <Link to={to} className='text-[14] bg-white py-2 px-10'>
+          {buttonText}
+        </Link>
       </div>
     </>
   )

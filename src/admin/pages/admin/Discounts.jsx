@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { adminApi } from "@/lib/adminApi";
 import { Button } from "@/components/ui/button";

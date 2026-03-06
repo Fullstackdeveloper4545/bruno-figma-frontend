@@ -74,6 +74,12 @@ export const adminApi = {
   getLanguages: () => getJson('/api/languages'),
   setLanguages: (languages: string[]) => putJson('/api/languages', { languages }),
 
+  getSystemModules: () => getJson('/api/system/modules'),
+  setSystemModule: (moduleKey: string, enabled: boolean) =>
+    putJson(`/api/system/modules/${moduleKey}`, { enabled }),
+  getGeneralSettings: () => getJson('/api/system/general-settings'),
+  setGeneralSettings: (payload: unknown) => putJson('/api/system/general-settings', payload),
+
   listBlogPosts: () => getJson('/api/blog/admin'),
   createBlogPost: (payload: unknown) => postJson('/api/blog/admin', payload),
   updateBlogPost: (id: string, payload: unknown) => putJson(`/api/blog/admin/${id}`, payload),

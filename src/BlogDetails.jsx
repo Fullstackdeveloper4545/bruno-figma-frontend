@@ -1,28 +1,98 @@
-import React from 'react'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
+import { getJson, resolveAssetUrl } from './lib/api'
 
-const defaultBlog = {
+const fallbackBlog = {
   id: 'sample-1',
-  title: 'TÍTULO DO ARTIGO',
+  title: 'Titulo do artigo',
   date: 'Data do artigo',
   heroImage:
     'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=80',
-  paragraphs: [
-    'maximus elit. Ut volutpat. Nunc maximus in gravida nisl. urna. tincidunt turpis eget sit libero, ullamcorper ullamcorper non urna quam non luctus faucibus sed in facilisis non. et tincidunt sollicitudin. enim. sed. placerat.',
-    'nisl. convallis. urna. Ut. Nam ullamcorper placerat porti eget amet. non. id. ut sodales. sodales. leo. dui. placerat. Cras nisi luctus. quis nec vitae vitae elit. quis. lobortis. vel viverra. Donec Nunc urna eget ex dui. porta ultrices non venenatis dui in varius nec scelerisque ac lorem. vel ipsum eget elit nec convallis. placerat. hendrerit urna ex lacus, cursus a dui. Nam non sodalesque nec venenatis libero. varius quis libero, leo. Nunc ut porta dui. nibh ipsum tempor in Quisque elit. amet, vehicula, placerat id amet, sit eget viverra leo. lacus Nunc tincidunt lorem. ell lobarcut N non vel luctus volutpat dui nibh ipsum tempor tincidunt sit quis. Ut lobortis. nisi nulla. placerat porta id sit eu nisi nulla. Nunc quis dui. orci ell. non. fringilla luctus sed Vestibulum facilisis sit odio eget non sollicitudin. tortor. urna eu ac id eget nisl. tempor efficitur. vitae est. quis faucibus nibh Vestibulum lacus, ultrices Lorem luctus Donec.',
-    'incidunt eu ipsum at Cras venenatis efficitur. vehicula, tempor orci malesuada turpis risus tincidunt ex. Vestibulum nec amet, tortor. vel sit urna. non. quam quis felis, fringilla sit est. convallis. Morbi nibh odio placerat in dui Cras.',
-    'id Quisque elit. amet, vehicula, placerat id amet, sit eget viverra leo. lacus Nunc tincidunt lorem. ell lobarcut N non vel luctus volutpat dui nibh ipsum tempor tincidunt sit quis. Ut lobortis. nisi nulla. placerat porta id sit eu nisi nulla. Nunc quis dui. orci ell. non. fringilla luctus sed Vestibulum facilisis sit odio eget non sollicitudin. tortor. urna eu ac id eget nisl. tempor efficitur. vitae est. quis faucibus nibh Vestibulum lacus, ultrices Lorem luctus Donec.',
-  ],
+  paragraphs: ['Conteudo indisponivel no momento.'],
 }
 
-const BlogDetails = ({ blog = defaultBlog }) => {
+function formatDate(value) {
+  if (!value) return 'Sem data'
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return 'Sem data'
+  return parsed.toLocaleDateString('pt-PT', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function normalizeParagraphs(content) {
+  const text = String(content || '').trim()
+  if (!text) return fallbackBlog.paragraphs
+  return text
+    .split(/\n{2,}/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+}
+
+const BlogDetails = () => {
+  const { slug } = useParams()
+  const [post, setPost] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    const load = async () => {
+      const safeSlug = String(slug || '').trim()
+      if (!safeSlug) {
+        setPost(null)
+        setLoading(false)
+        setError('Invalid blog URL.')
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError('')
+        const row = await getJson(`/api/blog/${encodeURIComponent(safeSlug)}`)
+        if (!active) return
+        setPost(row)
+      } catch (err) {
+        if (!active) return
+        setPost(null)
+        setError(err instanceof Error ? err.message : 'Failed to load blog post.')
+      } finally {
+        if (active) setLoading(false)
+      }
+    }
+
+    void load()
+    return () => {
+      active = false
+    }
+  }, [slug])
+
+  const blog = useMemo(() => {
+    if (!post) return fallbackBlog
+    const title = post?.title_pt || post?.title_es || fallbackBlog.title
+    return {
+      id: post?.id || fallbackBlog.id,
+      title,
+      date: formatDate(post?.published_at || post?.created_at),
+      heroImage: resolveAssetUrl(post?.cover_image_url || '') || fallbackBlog.heroImage,
+      paragraphs: normalizeParagraphs(post?.content_pt || post?.content_es),
+    }
+  }, [post])
+
   return (
     <>
       <Navbar />
 
       <section className='bg-white px-5 py-10 font-["Poppins",sans-serif]'>
         <div className='w-[80%] mx-auto max-w-none'>
+          {loading ? <p className='mb-6 text-[13px] text-[#6b7280]'>Loading blog...</p> : null}
+          {error ? <p className='mb-6 text-[13px] text-[#b42318]'>{error}</p> : null}
+
           <div className='w-full overflow-hidden bg-[#f2f3f6]'>
             <img
               src={blog.heroImage}

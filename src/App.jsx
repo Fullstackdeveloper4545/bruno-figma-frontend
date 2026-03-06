@@ -5,12 +5,12 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import { Pagination, Navigation } from 'swiper/modules'
 import './App.css'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
-import ProductCard from './Components/UI/ProductCard'
-import CategoryCard from './Components/UI/CategoryCard'
-import StoreCard from './Components/UI/StoreCard'
-import CommunityCard from './Components/UI/CommunityCard'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
+import ProductCard from './components/ui/ProductCard'
+import CategoryCard from './components/ui/CategoryCard'
+import StoreCard from './components/ui/StoreCard'
+import CommunityCard from './components/ui/CommunityCard'
 import StoreFaro from './assets/Faro.png'
 import StoreLisboa from './assets/Lisboa.png'
 import StoreMatosinhos from './assets/Matosinhos.png'
@@ -89,6 +89,7 @@ const benefits = [
       'Pagamentos seguros, precos claros e informacao detalhada em todos os produtos, sem surpresas.',
   },
 ]
+const LOW_STOCK_THRESHOLD = 5
 
 function toNumber(value, fallback = 0) {
   const parsed = Number(value)
@@ -101,6 +102,71 @@ function formatPrice(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} EUR`
+}
+
+function createStockLabel(stock) {
+  const qty = Number(stock)
+  if (!Number.isFinite(qty)) return null
+  const safeQty = Math.max(0, Math.floor(qty))
+  if (safeQty === 0) return 'Out of stock'
+  if (safeQty <= LOW_STOCK_THRESHOLD) return `${safeQty} left`
+  return null
+}
+
+function readStockValue(source) {
+  if (!source || typeof source !== 'object') return null
+  const candidates = [
+    source.stock_quantity,
+    source.stock_left,
+    source.quantity,
+    source.stock,
+  ]
+  for (const candidate of candidates) {
+    const parsed = Number(candidate)
+    if (Number.isFinite(parsed)) return Math.max(0, Math.floor(parsed))
+  }
+  return null
+}
+
+function sumStockValues(items) {
+  if (!Array.isArray(items) || items.length === 0) return null
+  let total = 0
+  let hasValue = false
+  for (const item of items) {
+    const qty = readStockValue(item)
+    if (qty == null) continue
+    total += qty
+    hasValue = true
+  }
+  return hasValue ? total : null
+}
+
+function getProductStock(product) {
+  const directProductStock = readStockValue(product)
+  if (directProductStock != null) return directProductStock
+
+  const productInventoryStock = sumStockValues(product?.inventory)
+  if (productInventoryStock != null) return productInventoryStock
+
+  const variants = Array.isArray(product?.variants) ? product.variants : []
+  if (variants.length === 0) return null
+
+  let total = 0
+  let hasValue = false
+  for (const variant of variants) {
+    const directVariantStock = readStockValue(variant)
+    if (directVariantStock != null) {
+      total += directVariantStock
+      hasValue = true
+      continue
+    }
+    const variantInventoryStock = sumStockValues(variant?.inventory)
+    if (variantInventoryStock != null) {
+      total += variantInventoryStock
+      hasValue = true
+    }
+  }
+  return hasValue ? total : null
 }
 
 function parseAttributeValues(raw) {
@@ -139,6 +205,13 @@ function buildProductCard(product, index) {
   const compareAtPrice = toNumber(primaryVariant?.compare_at_price, 0)
   const hasDiscount = compareAtPrice > price && compareAtPrice > 0
   const discountPct = hasDiscount ? Math.round(((compareAtPrice - price) / compareAtPrice) * 100) : 0
+  const stockLeft = getProductStock(product)
+  const stockLabel =
+    stockLeft === 0
+      ? 'Out of stock'
+      : stockLeft != null && stockLeft <= LOW_STOCK_THRESHOLD
+        ? `${stockLeft} left`
+        : null
 
   return {
     id: product?.id || `product-${index}`,
@@ -148,15 +221,21 @@ function buildProductCard(product, index) {
     price: formatPrice(price),
     oldPrice: hasDiscount ? formatPrice(compareAtPrice) : null,
     discountLabel: hasDiscount ? `${discountPct}% off` : null,
+    stockLabel,
     isPromoted: Boolean(product?.is_promoted),
   }
 }
 
 function buildCategoryCard(category, index) {
+  const categoryId = category?.id != null ? String(category.id) : `category-${index}`
+  const categoryTitle = category?.name_pt || category?.name_es || category?.slug || 'Categoria'
   return {
-    id: category?.id || `category-${index}`,
-    title: category?.name_pt || category?.name_es || category?.slug || 'Categoria',
+    id: categoryId,
+    title: categoryTitle,
     image: resolveAssetUrl(category?.image_url || ''),
+    to: `/products?categoryId=${encodeURIComponent(categoryId)}&categoryName=${encodeURIComponent(
+      categoryTitle
+    )}`,
   }
 }
 
@@ -184,16 +263,32 @@ function App() {
       setHomeLoading(true)
       setHomeError('')
 
-      const [productsResult, categoriesResult, storesResult] = await Promise.allSettled([
+      const [productsResult, categoriesResult, storesResult, stockSummaryResult] = await Promise.allSettled([
         getJson('/api/products', { signal: controller.signal }),
         getJson('/api/catalog/categories', { signal: controller.signal }),
         getJson('/api/stores', { signal: controller.signal }),
+        getJson(`/api/orders/dashboard/summary?threshold=${LOW_STOCK_THRESHOLD}&limit=1000`, { signal: controller.signal }),
       ])
 
       if (isCancelled) return
 
+      const lowStockMap = new Map()
+      if (stockSummaryResult.status === 'fulfilled' && Array.isArray(stockSummaryResult.value?.low_stock_products)) {
+        for (const row of stockSummaryResult.value.low_stock_products) {
+          const key = String(row?.product_id || '').trim()
+          if (!key) continue
+          const qty = Number(row?.stock_left)
+          if (!Number.isFinite(qty)) continue
+          lowStockMap.set(key, Math.max(0, Math.floor(qty)))
+        }
+      }
+
       const nextProducts = productsResult.status === 'fulfilled' && Array.isArray(productsResult.value)
-        ? productsResult.value.map(buildProductCard)
+        ? productsResult.value.map((entry, index) => {
+            const mapped = buildProductCard(entry, index)
+            const dbStock = lowStockMap.get(String(mapped.id || '').trim())
+            return dbStock == null ? mapped : { ...mapped, stockLabel: createStockLabel(dbStock) }
+          })
         : []
 
       const nextCategories =
@@ -292,6 +387,8 @@ function App() {
           <Swiper
             slidesPerView={1}
             spaceBetween={12}
+            preventClicks={false}
+            preventClicksPropagation={false}
             breakpoints={{
               640: { slidesPerView: 2, spaceBetween: 12 },
               768: { slidesPerView: 3, spaceBetween: 12 },
@@ -311,6 +408,8 @@ function App() {
                   price={product.price}
                   oldPrice={product.oldPrice}
                   discountLabel={product.discountLabel}
+                  stockLabel={product.stockLabel}
+                  to={`/productDetails/${encodeURIComponent(String(product.id))}`}
                 />
               </SwiperSlide>
             ))}
@@ -333,7 +432,7 @@ function App() {
           >
             {categories.map((category) => (
               <SwiperSlide key={`cat-mobile-${category.id}`} className='py-4'>
-                <CategoryCard title={category.title} image={category.image} />
+                <CategoryCard title={category.title} image={category.image} to={category.to} />
               </SwiperSlide>
             ))}
           </Swiper>
@@ -341,7 +440,12 @@ function App() {
 
         <div className='hidden md:flex flex-wrap justify-center gap-4 mt-10'>
           {categories.map((category) => (
-            <CategoryCard key={`cat-desktop-${category.id}`} title={category.title} image={category.image} />
+            <CategoryCard
+              key={`cat-desktop-${category.id}`}
+              title={category.title}
+              image={category.image}
+              to={category.to}
+            />
           ))}
         </div>
       </section>
@@ -359,6 +463,8 @@ function App() {
           <Swiper
             slidesPerView={1}
             spaceBetween={12}
+            preventClicks={false}
+            preventClicksPropagation={false}
             breakpoints={{
               640: { slidesPerView: 2, spaceBetween: 12 },
               768: { slidesPerView: 3, spaceBetween: 12 },
@@ -378,6 +484,8 @@ function App() {
                   price={product.price}
                   oldPrice={product.oldPrice}
                   discountLabel={product.discountLabel}
+                  stockLabel={product.stockLabel}
+                  to={`/productDetails/${encodeURIComponent(String(product.id))}`}
                 />
               </SwiperSlide>
             ))}

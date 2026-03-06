@@ -5,14 +5,16 @@ import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 import { Pagination, Navigation } from 'swiper/modules'
 import { useNavigate, useParams } from 'react-router-dom'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
 import productImage from './assets/product-card-test-image.png'
-import ProductCard from './Components/UI/ProductCard'
+import ProductCard from './components/ui/ProductCard'
 import IconEntrega from './assets/image4.png'
 import IconDevolucao from './assets/image5.png'
 import { getJson, resolveAssetUrl } from './lib/api'
 import { addCartItem } from './lib/cart'
+
+const LOW_STOCK_THRESHOLD = 5
 
 function toNumber(value, fallback = 0) {
   const parsed = Number(value)
@@ -25,6 +27,15 @@ function formatPrice(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} EUR`
+}
+
+function createStockLabel(stock) {
+  const qty = Number(stock)
+  if (!Number.isFinite(qty)) return null
+  const safeQty = Math.max(0, Math.floor(qty))
+  if (safeQty === 0) return 'Out of stock'
+  if (safeQty <= LOW_STOCK_THRESHOLD) return `${safeQty} left`
+  return null
 }
 
 function parseAttributes(raw) {
@@ -107,10 +118,34 @@ function ProductDetailsPage() {
       try {
         setLoading(true)
         setError('')
-        const rows = await getJson('/api/products')
+        const [productsResponse, stockSummaryResponse] = await Promise.allSettled([
+          getJson('/api/products'),
+          getJson(`/api/orders/dashboard/summary?threshold=${LOW_STOCK_THRESHOLD}&limit=2000`),
+        ])
         if (!active) return
 
-        const mapped = Array.isArray(rows) ? rows.map(mapProductForDetails) : []
+        const lowStockMap = new Map()
+        if (
+          stockSummaryResponse.status === 'fulfilled' &&
+          Array.isArray(stockSummaryResponse.value?.low_stock_products)
+        ) {
+          for (const row of stockSummaryResponse.value.low_stock_products) {
+            const key = String(row?.product_id || '').trim()
+            if (!key) continue
+            const qty = Number(row?.stock_left)
+            if (!Number.isFinite(qty)) continue
+            lowStockMap.set(key, Math.max(0, Math.floor(qty)))
+          }
+        }
+
+        const mapped =
+          productsResponse.status === 'fulfilled' && Array.isArray(productsResponse.value)
+            ? productsResponse.value.map((entry, index) => {
+                const item = mapProductForDetails(entry, index)
+                const dbStock = lowStockMap.get(String(item.id || '').trim())
+                return dbStock == null ? item : { ...item, stockLabel: createStockLabel(dbStock) }
+              })
+            : []
         if (mapped.length === 0) {
           setProduct(null)
           setRecommended([])
@@ -302,6 +337,8 @@ function ProductDetailsPage() {
           <Swiper
             slidesPerView={1}
             spaceBetween={12}
+            preventClicks={false}
+            preventClicksPropagation={false}
             breakpoints={{
               640: { slidesPerView: 2, spaceBetween: 12 },
               768: { slidesPerView: 3, spaceBetween: 12 },
@@ -320,6 +357,7 @@ function ProductDetailsPage() {
                   price={formatPrice(item.price)}
                   oldPrice={item.compareAt > item.price ? formatPrice(item.compareAt) : null}
                   image={item.image}
+                  stockLabel={item.stockLabel}
                   to={`/productDetails/${encodeURIComponent(String(item.id || idx))}`}
                 />
               </SwiperSlide>

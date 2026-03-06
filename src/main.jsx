@@ -14,9 +14,7 @@ import ThankuMessagePage from './ThankuMessagePage.jsx'
 import ContactPage from './ContactPage.jsx'
 import AboutUsPage from './AboutUsPage.jsx'
 
-import { Toaster } from '@/components/ui/toaster'
-import { TooltipProvider } from '@/components/ui/tooltip'
-import { AdminAuthProvider, useAdminAuth } from '@/contexts/AdminAuthContext'
+import { AdminAuthProvider, useAdminAuth } from './admin/contexts/AdminAuthContext.jsx'
 import AdminLayout from './admin/components/admin/AdminLayout.jsx'
 import AdminLogin from './admin/pages/admin/AdminLogin.jsx'
 import Dashboard from './admin/pages/admin/Dashboard.jsx'
@@ -45,10 +43,7 @@ import Blogs from './admin/pages/admin/Blogs.jsx'
 
 const AdminProviders = () => (
   <AdminAuthProvider>
-    <TooltipProvider>
-      <Toaster />
-      <Outlet />
-    </TooltipProvider>
+    <Outlet />
   </AdminAuthProvider>
 )
 
@@ -117,8 +112,9 @@ createRoot(document.getElementById('root')).render(
         <Route path='/productDetails' element={<ProductDetailsPage />} />
         <Route path='/cart' element={<CartPage />} />
         <Route path='/thank-you' element={<ThankYouPage />} />
-        <Route path='/blogs' element={<BlogsPage />} />
+        <Route path='/blog' element={<BlogsPage />} />
         <Route path='/checkout' element={<CheckoutPage />} />
+        <Route path='/blog/:slug' element={<BlogDetails />} />
         <Route path='/blogDetails' element={<BlogDetails />} />
         <Route path='/thanku-message' element={<ThankuMessagePage />} />
         <Route path='/contact' element={<ContactPage />} />

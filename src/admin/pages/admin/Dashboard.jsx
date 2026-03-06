@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { ArrowDownRight, ArrowUpRight, AlertTriangle, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,11 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
-import ProductCard from './Components/UI/ProductCard'
+import { useSearchParams } from 'react-router-dom'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
+import ProductCard from './components/ui/ProductCard'
 import productImage from './assets/product-card-test-image.png'
 import { getJson, resolveAssetUrl } from './lib/api'
 import { ChevronDown } from 'lucide-react'
 
+const LOW_STOCK_THRESHOLD = 5
 
 const fallbackProducts = [
   {
@@ -16,6 +18,7 @@ const fallbackProducts = [
     oldPrice: '188.00 EUR',
     discountLabel: '30% off',
     image: productImage,
+    stockLabel: null,
   },
   {
     id: 'fallback-2',
@@ -23,6 +26,7 @@ const fallbackProducts = [
     color: 'Azul',
     price: '135.00 EUR',
     image: productImage,
+    stockLabel: null,
   },
   {
     id: 'fallback-3',
@@ -30,6 +34,7 @@ const fallbackProducts = [
     color: 'Branco e Laranja',
     price: '97.00 EUR',
     image: productImage,
+    stockLabel: null,
   },
 ]
 
@@ -56,6 +61,15 @@ function formatPrice(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })} EUR`
+}
+
+function createStockLabel(stock) {
+  const qty = Number(stock)
+  if (!Number.isFinite(qty)) return null
+  const safeQty = Math.max(0, Math.floor(qty))
+  if (safeQty === 0) return 'Out of stock'
+  if (safeQty <= LOW_STOCK_THRESHOLD) return `${safeQty} left`
+  return null
 }
 
 function parseAttributes(raw) {
@@ -92,28 +106,60 @@ function mapProductToCard(product, index) {
 
   return {
     id: product?.id || `api-product-${index}`,
+    categoryId: product?.category_id != null ? String(product.category_id) : '',
+    categoryName: product?.category_name_pt || product?.category_name_es || '',
     title: product?.name_pt || product?.name_es || product?.sku || `Produto ${index + 1}`,
     color: extractColor(primaryVariant?.attribute_values),
     price: formatPrice(price),
     oldPrice: hasDiscount ? formatPrice(compareAt) : null,
     discountLabel: hasDiscount ? `${discountPct}% off` : null,
     image,
+    stockLabel: null,
   }
 }
 
 function ProductsPage() {
+  const [searchParams] = useSearchParams()
   const [products, setProducts] = useState([])
   const [error, setError] = useState('')
   const [selectedColor, setSelectedColor] = useState(null)
+  const selectedCategoryId = String(searchParams.get('categoryId') || '').trim()
+  const selectedCategoryName = String(searchParams.get('categoryName') || '').trim()
 
   useEffect(() => {
     let active = true
 
     const loadProducts = async () => {
       try {
-        const rows = await getJson('/api/products')
+        const [productsResponse, stockSummaryResponse] = await Promise.allSettled([
+          getJson('/api/products'),
+          getJson(`/api/orders/dashboard/summary?threshold=${LOW_STOCK_THRESHOLD}&limit=2000`),
+        ])
         if (!active) return
-        const mapped = Array.isArray(rows) ? rows.map(mapProductToCard) : []
+
+        const lowStockMap = new Map()
+        if (
+          stockSummaryResponse.status === 'fulfilled' &&
+          Array.isArray(stockSummaryResponse.value?.low_stock_products)
+        ) {
+          for (const row of stockSummaryResponse.value.low_stock_products) {
+            const key = String(row?.product_id || '').trim()
+            if (!key) continue
+            const qty = Number(row?.stock_left)
+            if (!Number.isFinite(qty)) continue
+            lowStockMap.set(key, Math.max(0, Math.floor(qty)))
+          }
+        }
+
+        const mapped =
+          productsResponse.status === 'fulfilled' && Array.isArray(productsResponse.value)
+            ? productsResponse.value.map((product, index) => {
+                const card = mapProductToCard(product, index)
+                const dbStock = lowStockMap.get(String(card.id || '').trim())
+                return dbStock == null ? card : { ...card, stockLabel: createStockLabel(dbStock) }
+              })
+            : []
+
         setProducts(mapped)
         setError('')
       } catch (err) {
@@ -130,10 +176,11 @@ function ProductsPage() {
     }
   }, [])
 
-  const visibleProducts = useMemo(
-    () => (products.length > 0 ? products : fallbackProducts),
-    [products]
-  )
+  const visibleProducts = useMemo(() => {
+    const base = products.length > 0 ? products : fallbackProducts
+    if (!selectedCategoryId) return base
+    return base.filter((product) => String(product?.categoryId || '').trim() === selectedCategoryId)
+  }, [products, selectedCategoryId])
 
   const toggleColor = (name) => {
     setSelectedColor((prev) => (prev === name ? null : name))
@@ -384,10 +431,15 @@ function ProductsPage() {
 
           <div className='lg:max-h-[calc(100vh-140px)] lg:overflow-y-auto lg:pr-2'>
             <div className='mb-4'>
-              <p className='text-[12px] text-black/60'>Home / Sapatilhas</p>
-              <h1 className='text-[32px] font-semibold'>Sapatilhas</h1>
+              <p className='text-[12px] text-black/60'>
+                Home / {selectedCategoryName || 'Sapatilhas'}
+              </p>
+              <h1 className='text-[32px] font-semibold'>{selectedCategoryName || 'Sapatilhas'}</h1>
               {error ? <p className='mt-1 text-[12px] text-red-600'>Live products unavailable. Showing fallback items.</p> : null}
             </div>
+            {selectedCategoryId && visibleProducts.length === 0 ? (
+              <p className='mb-6 text-[13px] text-black/60'>No products found in this category.</p>
+            ) : null}
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12'>
               {visibleProducts.map((product, index) => (
                 <ProductCard
@@ -398,6 +450,7 @@ function ProductsPage() {
                   price={product.price}
                   oldPrice={product.oldPrice}
                   discountLabel={product.discountLabel}
+                  stockLabel={product.stockLabel}
                   to={`/productDetails/${encodeURIComponent(String(product.id || index))}`}
                 />
               ))}

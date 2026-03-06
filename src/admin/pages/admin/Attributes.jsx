@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { adminApi } from "@/lib/adminApi";
 import { Button } from "@/components/ui/button";

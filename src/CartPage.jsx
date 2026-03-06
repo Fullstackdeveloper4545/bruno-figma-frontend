@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import Navbar from './Components/layout/Navbar'
-import Footer from './Components/layout/Footer'
+import Navbar from './components/layout/Navbar'
+import Footer from './components/layout/Footer'
 import { postJson } from './lib/api'
 import {
   cartEvents,

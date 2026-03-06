@@ -1,6 +1,7 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
-const BlogCard = ({ image, title, date, linkText = 'Ler mais' }) => {
+const BlogCard = ({ image, title, date, linkText = 'Ler mais', to = '/blogs' }) => {
   return (
     <article className='w-full'>
       <div className='w-full aspect-square bg-[#d9d9d9] overflow-hidden'>
@@ -9,9 +10,9 @@ const BlogCard = ({ image, title, date, linkText = 'Ler mais' }) => {
       <div className='pt-4'>
         <h3 className='m-0 text-[15px] font-semibold text-black'>{title}</h3>
         <p className='m-0 mt-3 text-[12px] text-black/70'>{date}</p>
-        <a href='#' className='inline-block mt-3 text-[12px] text-black'>
+        <Link to={to} className='inline-block mt-3 text-[12px] text-black'>
           {linkText}
-        </a>
+        </Link>
       </div>
     </article>
   )
