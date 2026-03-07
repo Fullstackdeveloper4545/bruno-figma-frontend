@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import logo from '../../assets/logo.png'
+import logo from '../../assets/Logo.png'
 import { Search, User, ShoppingCart, Menu, X } from 'lucide-react'
 import { cartEvents, getCartCount } from '../../lib/cart'
 
