@@ -376,7 +376,8 @@ const AdminLayout = () => {
     [location.pathname, location.search, navigate]
   );
   return <SidebarProvider open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-      <Sidebar className="z-50 border-r border-border/60 bg-sidebar text-sidebar-foreground" collapsible="icon" variant="inset">
+      <div className="flex h-svh w-full items-stretch overflow-hidden">
+      <Sidebar className="z-50 h-svh border-r border-border/60 bg-sidebar text-sidebar-foreground" collapsible="icon" variant="inset">
         <SidebarHeader>
           <div className="flex flex-col gap-3 rounded-lg border border-sidebar-border/60 bg-background/70 p-3 transition-all group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:p-2">
             <div className="flex items-center gap-3 group-data-[collapsible=icon]:justify-center">
@@ -411,7 +412,7 @@ const AdminLayout = () => {
   >
                         <NavLink to={item.to}>
                           <item.icon className="h-4 w-4" />
-                          <span>{item.title}</span>
+                          <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                         </NavLink>
                       </SidebarMenuButton>
                       {item.badge ? <SidebarMenuBadge>{item.badge}</SidebarMenuBadge> : null}
@@ -445,8 +446,8 @@ const AdminLayout = () => {
         </SidebarFooter>
       </Sidebar>
       <SidebarRail />
-      <SidebarInset className="bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.25),_transparent_55%)] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(90deg,rgba(148,163,184,0.25)_1px,transparent_1px),linear-gradient(rgba(148,163,184,0.25)_1px,transparent_1px)] before:bg-[size:48px_48px] before:opacity-40">
-        <div className="relative z-10 flex min-h-svh flex-col">
+      <SidebarInset className="min-w-0 h-svh overflow-hidden bg-[#edf0f4] before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(90deg,rgba(148,163,184,0.18)_1px,transparent_1px),linear-gradient(rgba(148,163,184,0.18)_1px,transparent_1px)] before:bg-[size:64px_64px] before:opacity-80 after:pointer-events-none after:absolute after:left-[14%] after:top-0 after:h-[340px] after:w-[52%] after:bg-[rgba(238,229,204,0.72)]">
+        <div className="relative z-10 flex h-full min-h-0 flex-col">
           <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur">
             <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 lg:px-8">
               <div className="flex items-center gap-3">
@@ -523,13 +524,14 @@ const AdminLayout = () => {
               </div>
             </div>
           </header>
-          <main className="flex-1">
+          <main className="flex-1 min-h-0 overflow-y-auto">
             <div className="mx-auto w-full max-w-7xl px-4 pb-12 pt-6 lg:px-8">
               <Outlet />
             </div>
           </main>
         </div>
       </SidebarInset>
+      </div>
     </SidebarProvider>;
 };
 var stdin_default = AdminLayout;

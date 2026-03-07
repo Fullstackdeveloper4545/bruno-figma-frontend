@@ -24,10 +24,15 @@ function useSidebar() {
 
 function Sidebar({ className, collapsible, children, ...props }) {
   const sidebar = useSidebar()
+  const isIconCollapsed = collapsible === 'icon' && !sidebar?.open
   return (
     <aside
-      data-collapsible={collapsible === 'icon' && !sidebar?.open ? 'icon' : undefined}
-      className={cn('flex w-72 shrink-0 flex-col gap-2', className)}
+      data-collapsible={isIconCollapsed ? 'icon' : undefined}
+      className={cn(
+        'group flex shrink-0 flex-col gap-2 overflow-hidden transition-[width] duration-200 ease-in-out',
+        isIconCollapsed ? 'w-20' : 'w-72',
+        className
+      )}
       {...props}
     >
       {children}
@@ -76,7 +81,12 @@ function SidebarGroup({ className, ...props }) {
 }
 
 function SidebarGroupLabel({ className, ...props }) {
-  return <p className={cn('px-2 text-xs uppercase tracking-wide text-muted-foreground', className)} {...props} />
+  return (
+    <p
+      className={cn('px-2 text-xs uppercase tracking-wide text-muted-foreground group-data-[collapsible=icon]:hidden', className)}
+      {...props}
+    />
+  )
 }
 
 function SidebarGroupContent({ className, ...props }) {
@@ -95,7 +105,7 @@ function SidebarMenuBadge({ className, ...props }) {
   return (
     <span
       className={cn(
-        'absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold',
+        'absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold group-data-[collapsible=icon]:hidden',
         className
       )}
       {...props}
@@ -105,7 +115,7 @@ function SidebarMenuBadge({ className, ...props }) {
 
 function SidebarMenuButton({ className, asChild = false, isActive = false, tooltip, children, ...props }) {
   const classes = cn(
-    'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors',
+    'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors group-data-[collapsible=icon]:justify-center',
     isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'hover:bg-secondary',
     className
   )
@@ -147,4 +157,3 @@ export {
   SidebarSeparator,
   SidebarTrigger,
 }
-
