@@ -4,10 +4,16 @@ function isAbsoluteUrl(value) {
   return /^https?:\/\//i.test(String(value || ''))
 }
 
+function isLikelyDomain(value) {
+  return /^(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/.*)?$/i.test(String(value || ''))
+}
+
 export function toApiUrl(path) {
   const normalizedPath = String(path || '').trim()
   if (!normalizedPath) return API_BASE_URL || '/'
   if (isAbsoluteUrl(normalizedPath)) return normalizedPath
+  if (normalizedPath.startsWith('//')) return `https:${normalizedPath}`
+  if (isLikelyDomain(normalizedPath)) return `https://${normalizedPath.replace(/^https?:\/\//i, '')}`
   const safePath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`
   if (!API_BASE_URL) return safePath
   return `${API_BASE_URL}${safePath}`
@@ -125,7 +131,13 @@ export function resolveAssetUrl(path) {
   const value = String(path || '').trim()
   if (!value) return ''
   if (isAbsoluteUrl(value)) return value
+  if (value.startsWith('//')) return `https:${value}`
+  if (isLikelyDomain(value)) return `https://${value.replace(/^https?:\/\//i, '')}`
   if (value.startsWith('data:')) return value
+  if (value.startsWith('blob:')) return value
+  if (value.startsWith('uploads/') || value.startsWith('labels/') || value.startsWith('api/')) {
+    return toApiUrl(`/${value}`)
+  }
   if (value.startsWith('/')) return toApiUrl(value)
   return value
 }
