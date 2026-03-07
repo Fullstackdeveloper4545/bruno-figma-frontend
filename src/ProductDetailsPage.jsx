@@ -15,6 +15,29 @@ import { getJson, resolveAssetUrl } from './lib/api'
 import { addCartItem } from './lib/cart'
 
 const LOW_STOCK_THRESHOLD = 5
+const COLOR_SWATCHES = [
+  { id: 'preto', label: 'Preto', color: '#111111' },
+  { id: 'azul', label: 'Azul', color: '#1f4f8f' },
+  { id: 'castanho', label: 'Castanho', color: '#9a5b2a' },
+  { id: 'verde', label: 'Verde', color: '#5f6b4f' },
+  { id: 'cinzento', label: 'Cinzento', color: '#d9d9d9', light: true },
+  { id: 'laranja', label: 'Laranja', color: '#d8892b' },
+  { id: 'rosa', label: 'Rosa', color: '#f0c7bd' },
+  { id: 'vermelho', label: 'Vermelho', color: '#c62828' },
+  { id: 'bege', label: 'Bege', color: '#b8a892' },
+]
+
+const colorAliasMap = {
+  preto: ['preto', 'preta', 'black', 'noir'],
+  azul: ['azul', 'blue', 'navy'],
+  castanho: ['castanho', 'marrom', 'brown'],
+  verde: ['verde', 'green'],
+  cinzento: ['cinzento', 'cinza', 'gris', 'grey', 'gray'],
+  laranja: ['laranja', 'orange'],
+  rosa: ['rosa', 'pink'],
+  vermelho: ['vermelho', 'red', 'rojo'],
+  bege: ['bege', 'beige'],
+}
 
 function toNumber(value, fallback = 0) {
   const parsed = Number(value)
@@ -50,29 +73,99 @@ function parseAttributes(raw) {
   }
 }
 
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+function getColorTokens(colorId) {
+  const swatch = COLOR_SWATCHES.find((entry) => entry.id === colorId)
+  const key = normalizeText(swatch?.label || colorId)
+  return colorAliasMap[key] || [key]
+}
+
+function colorMatches(value, selectedColorId) {
+  const haystack = normalizeText(value)
+  if (!haystack) return false
+  return getColorTokens(selectedColorId).some((token) => haystack.includes(token))
+}
+
+function resolveColorId(value) {
+  const normalized = normalizeText(value)
+  if (!normalized) return ''
+
+  for (const swatch of COLOR_SWATCHES) {
+    const tokens = getColorTokens(swatch.id)
+    if (tokens.some((token) => normalized.includes(token) || token.includes(normalized))) {
+      return swatch.id
+    }
+  }
+
+  return ''
+}
+
+function pickImageByColor(imageOptions, selectedColorId) {
+  if (!Array.isArray(imageOptions) || imageOptions.length === 0) return ''
+  const match = imageOptions.find((item) => colorMatches(item.searchText, selectedColorId))
+  return match?.url || ''
+}
+
+function extractColorFromAttributes(attributes) {
+  const entries = Object.entries(attributes || {})
+  const found = entries.find(([key]) => {
+    const normalizedKey = normalizeText(key)
+    return normalizedKey.includes('cor') || normalizedKey.includes('color')
+  })
+  return String(found?.[1] || '').trim()
+}
+
 function mapProductForDetails(product, index = 0) {
   const variants = Array.isArray(product?.variants) ? product.variants : []
-  const images = Array.isArray(product?.images)
-    ? product.images.map((item) => resolveAssetUrl(item?.image_url || '')).filter(Boolean)
+  const imageOptions = Array.isArray(product?.images)
+    ? product.images
+        .map((item) => ({
+          url: resolveAssetUrl(item?.image_url || ''),
+          searchText: `${item?.alt_text || ''} ${item?.image_url || ''}`.trim(),
+        }))
+        .filter((item) => Boolean(item.url))
     : []
+  const images = imageOptions.map((item) => item.url)
   const primaryVariant = variants.find((variant) => variant?.is_active !== false) || variants[0] || null
   const price = toNumber(primaryVariant?.price ?? product?.base_price, 0)
   const compareAt = toNumber(primaryVariant?.compare_at_price, 0)
-  const colorsMap = new Map()
-
-  for (const variant of variants) {
+  const variantOptions = variants.map((variant) => {
     const attrs = parseAttributes(variant?.attribute_values)
-    for (const [key, value] of Object.entries(attrs)) {
-      const normalizedKey = String(key || '').toLowerCase()
-      if (!normalizedKey.includes('cor') && !normalizedKey.includes('color')) continue
-      const colorName = String(value || '').trim()
-      if (!colorName) continue
-      const id = colorName.toLowerCase()
-      if (!colorsMap.has(id)) {
-        colorsMap.set(id, { id, label: colorName, color: '#999999' })
-      }
+    const colorLabel = extractColorFromAttributes(attrs)
+    return {
+      id: variant?.id != null ? String(variant.id) : null,
+      isActive: variant?.is_active !== false,
+      price: toNumber(variant?.price ?? product?.base_price, 0),
+      compareAt: toNumber(variant?.compare_at_price, 0),
+      colorLabel,
+      colorId: resolveColorId(colorLabel),
     }
-  }
+  })
+
+  const colorFromActiveVariant =
+    variantOptions.find((variant) => variant.isActive && variant.colorId)?.colorId ||
+    variantOptions.find((variant) => variant.colorId)?.colorId ||
+    ''
+  const colorFromImages = COLOR_SWATCHES.find((swatch) =>
+    imageOptions.some((item) => colorMatches(item.searchText, swatch.id))
+  )?.id
+  const defaultColorId = colorFromActiveVariant || colorFromImages || COLOR_SWATCHES[0].id
+  const swatchesWithAvailability = COLOR_SWATCHES.map((swatch) => ({
+    ...swatch,
+    available:
+      variantOptions.some((variant) => variant.colorId === swatch.id) ||
+      imageOptions.some((item) => colorMatches(item.searchText, swatch.id)),
+  }))
+  const visibleColors = swatchesWithAvailability.filter((swatch) => swatch.available)
+  const fallbackColor =
+    swatchesWithAvailability.find((swatch) => swatch.id === defaultColorId) || swatchesWithAvailability[0]
 
   return {
     id: String(product?.id || `fallback-${index}`),
@@ -88,16 +181,12 @@ function mapProductForDetails(product, index = 0) {
     price,
     compareAt,
     images: images.length > 0 ? images : [productImage, productImage, productImage, productImage],
-    colors:
-      Array.from(colorsMap.values()).length > 0
-        ? Array.from(colorsMap.values())
-        : [
-            { id: 'coral', label: 'Coral', color: '#c98d7c' },
-            { id: 'aqua', label: 'Aqua', color: '#7fd0d8' },
-            { id: 'orange', label: 'Orange', color: '#f16f5b' },
-          ],
-    cardColor: Array.from(colorsMap.values())[0]?.label || 'Cor disponivel',
-    image: images[0] || productImage,
+    imageOptions,
+    variantOptions,
+    defaultColorId,
+    colors: visibleColors.length > 0 ? visibleColors : fallbackColor ? [fallbackColor] : [],
+    cardColor: COLOR_SWATCHES.find((swatch) => swatch.id === defaultColorId)?.label || 'Cor disponivel',
+    image: pickImageByColor(imageOptions, defaultColorId) || images[0] || productImage,
   }
 }
 
@@ -180,29 +269,47 @@ function ProductDetailsPage() {
 
   useEffect(() => {
     if (!product) return
-    setSelectedColor(product.colors[0]?.id || '')
+    setSelectedColor(
+      product.colors.find((entry) => entry.id === product.defaultColorId)?.id ||
+        product.colors[0]?.id ||
+        ''
+    )
     setQuantity(1)
   }, [product])
 
-  const hasDiscount = useMemo(
-    () => Boolean(product && product.compareAt > product.price),
-    [product]
+  const selectedVariant = useMemo(() => {
+    if (!product) return null
+    return product.variantOptions.find((entry) => entry.colorId === selectedColor) || null
+  }, [product, selectedColor])
+
+  const selectedColorEntry = useMemo(
+    () => (product?.colors || COLOR_SWATCHES).find((entry) => entry.id === selectedColor) || null,
+    [product, selectedColor]
   )
+
+  const activePrice = selectedVariant?.price ?? product?.price ?? 0
+  const activeCompareAt = selectedVariant?.compareAt ?? product?.compareAt ?? 0
+  const hasDiscount = Boolean(product && activeCompareAt > activePrice)
+
+  const selectedImage = useMemo(() => {
+    if (!product) return productImage
+    const matched = (product.imageOptions || []).find((item) => colorMatches(item.searchText, selectedColor))?.url
+    return matched || product.images?.[0] || productImage
+  }, [product, selectedColor])
 
   const handleAddToCart = () => {
     if (!product) return
-    const selected = product.colors.find((entry) => entry.id === selectedColor)
     addCartItem({
-      id: `${product.id}:${selected?.id || 'default'}`,
+      id: `${product.id}:${selectedColor || 'default'}`,
       productId: product.id,
-      variantId: product.primaryVariantId,
+      variantId: selectedVariant?.id || product.primaryVariantId,
       categoryId: product.categoryId,
       sku: product.sku,
       name: product.title,
-      color: selected?.label || 'Cor disponivel',
+      color: selectedColorEntry?.label || 'Cor disponivel',
       qty: quantity,
-      unitPrice: Number(product.price || 0),
-      image: product.images?.[0] || productImage,
+      unitPrice: Number(activePrice || 0),
+      image: selectedImage || product.images?.[0] || productImage,
     })
     navigate('/cart')
   }
@@ -212,12 +319,8 @@ function ProductDetailsPage() {
       <Navbar />
       <section className='mt-[6vh] mb-[10vh]'>
         <div className='w-[90vw] mx-auto grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-10'>
-          <div className='grid grid-cols-2 gap-4'>
-            {(product?.images || [productImage, productImage, productImage, productImage]).map((img, index) => (
-              <div key={`${img}-${index}`} className='border border-black/5 flex items-center justify-center'>
-                <img src={img} alt={product?.title || 'Product image'} className='w-full' />
-              </div>
-            ))}
+          <div className='border border-black/5 flex items-center justify-center'>
+            <img src={selectedImage} alt={product?.title || 'Product image'} className='w-full' />
           </div>
 
           <div>
@@ -225,8 +328,8 @@ function ProductDetailsPage() {
             <div className='flex items-start justify-between gap-4 mt-2'>
               <h1 className='text-[24px] font-semibold'>{product?.title || 'Produto'}</h1>
               <div className='text-right flex gap-4'>
-                {hasDiscount ? <p className='text-[24px] line-through text-black/40'>{formatPrice(product.compareAt)}</p> : null}
-                <p className='text-[24px] font-semibold'>{formatPrice(product?.price || 0)}</p>
+                {hasDiscount ? <p className='text-[24px] line-through text-black/40'>{formatPrice(activeCompareAt)}</p> : null}
+                <p className='text-[24px] font-semibold'>{formatPrice(activePrice)}</p>
               </div>
             </div>
 
@@ -252,17 +355,29 @@ function ProductDetailsPage() {
 
             <div className='mt-6'>
               <span className='text-[12px] font-semibold'>Cor</span>
-              <div className='mt-3 flex items-center gap-3'>
+              <div className='mt-3 grid grid-cols-3 sm:grid-cols-5 gap-3 max-w-[360px]'>
                 {(product?.colors || []).map((c) => (
                   <button
                     key={c.id}
+                    type='button'
                     onClick={() => setSelectedColor(c.id)}
-                    className={`h-6 w-6 rounded-full border ${
-                      selectedColor === c.id ? 'ring-2 ring-black ring-offset-2' : 'border-black/10'
-                    }`}
-                    style={{ backgroundColor: c.color }}
+                    className='group flex flex-col items-center gap-1 outline-none'
                     aria-label={`Cor ${c.label}`}
-                  />
+                  >
+                    <span
+                      className={`h-6 w-6 rounded-full transition-shadow ${
+                        selectedColor === c.id
+                          ? 'ring-2 ring-black ring-offset-2 ring-offset-white'
+                          : c.light
+                            ? 'ring-1 ring-black/10'
+                            : ''
+                      } ${c.available ? '' : 'opacity-45'} group-focus-visible:ring-2 group-focus-visible:ring-black group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-white`}
+                      style={{ backgroundColor: c.color }}
+                    />
+                    <span className={`text-[11px] ${selectedColor === c.id ? 'font-semibold' : 'text-black/70'} ${c.available ? '' : 'opacity-50'}`}>
+                      {c.label}
+                    </span>
+                  </button>
                 ))}
               </div>
             </div>

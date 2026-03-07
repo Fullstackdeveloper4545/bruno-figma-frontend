@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { adminApi } from "@/lib/adminApi";
@@ -29,6 +29,50 @@ const createSpecificationRow = () => ({
   value_pt: "",
   value_es: ""
 });
+const adminColorSwatches = [
+  { name: "Preto", color: "#111111" },
+  { name: "Azul", color: "#1f4f8f" },
+  { name: "Castanho", color: "#9a5b2a" },
+  { name: "Verde", color: "#5f6b4f" },
+  { name: "Cinzento", color: "#d9d9d9", light: true },
+  { name: "Laranja", color: "#d8892b" },
+  { name: "Rosa", color: "#f0c7bd" },
+  { name: "Vermelho", color: "#c62828" },
+  { name: "Bege", color: "#b8a892" }
+];
+const adminGenderOptions = ["Mulher", "Homem", "Unisexo"];
+const adminSizeOptions = ["36", "38", "40", "42", "44", "46", "48", "50"];
+const adminBrandOptions = ["Adidas", "Asics", "Nike", "Hoka", "Puma", "New Balance", "Garmin", "Brooks"];
+const colorAliasMap = {
+  preto: ["preto", "preta", "black", "noir"],
+  azul: ["azul", "blue", "navy"],
+  castanho: ["castanho", "marrom", "brown"],
+  verde: ["verde", "green"],
+  cinzento: ["cinzento", "cinza", "gris", "grey", "gray"],
+  laranja: ["laranja", "orange"],
+  rosa: ["rosa", "pink"],
+  vermelho: ["vermelho", "red", "rojo"],
+  bege: ["bege", "beige"]
+};
+const normalizeValue = (value) => String(value || "").normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+const parseAttributeObject = (raw) => {
+  if (!raw) return {};
+  if (typeof raw === "object") return raw;
+  if (typeof raw !== "string") return {};
+  try {
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+const toggleSelection = (items, value) => items.includes(value) ? items.filter((item) => item !== value) : [...items, value];
+const colorMatches = (value, selectedColor) => {
+  const haystack = normalizeValue(value);
+  if (!haystack) return false;
+  const tokens = colorAliasMap[normalizeValue(selectedColor)] || [normalizeValue(selectedColor)];
+  return tokens.some((token) => haystack.includes(token));
+};
 const Products = () => {
   const [products, setProducts] = useState([]);
   const [stores, setStores] = useState([]);
@@ -62,6 +106,16 @@ const Products = () => {
   const [inventoryRows, setInventoryRows] = useState([]);
   const [loadingInventory, setLoadingInventory] = useState(false);
   const [editingProductId, setEditingProductId] = useState(null);
+  const [productSearch, setProductSearch] = useState("");
+  const [selectedProductCategories, setSelectedProductCategories] = useState([]);
+  const [selectedProductGenders, setSelectedProductGenders] = useState([]);
+  const [selectedProductSizes, setSelectedProductSizes] = useState([]);
+  const [selectedProductColors, setSelectedProductColors] = useState([]);
+  const [selectedProductBrands, setSelectedProductBrands] = useState([]);
+  const [selectedFormGenders, setSelectedFormGenders] = useState([]);
+  const [selectedFormSizes, setSelectedFormSizes] = useState([]);
+  const [selectedFormColors, setSelectedFormColors] = useState([]);
+  const [selectedFormBrands, setSelectedFormBrands] = useState([]);
   const selectedCategory = categories.find((category) => category.id === form.category_id);
   const discountPercentPreview = Number(form.discount_percent);
   const basePricePreview = Number(form.price);
@@ -79,6 +133,86 @@ const Products = () => {
     const variants = (product.variants || []).map((variant) => String(variant.sku || "").toLowerCase()).join(" ");
     return namePt.includes(query) || nameEs.includes(query) || categoryPt.includes(query) || categoryEs.includes(query) || variants.includes(query);
   });
+  const filteredProducts = useMemo(() => {
+    const query = normalizeValue(productSearch);
+
+    return products.filter((product) => {
+      const categoryId = String(product.category_id || "");
+      if (selectedProductCategories.length > 0 && !selectedProductCategories.includes(categoryId)) {
+        return false;
+      }
+
+      const variants = Array.isArray(product.variants) ? product.variants : [];
+      const productNamePt = String(product.name_pt || "");
+      const productNameEs = String(product.name_es || "");
+      const productNameCombined = `${productNamePt} ${productNameEs}`;
+
+      if (query) {
+        const variantText = variants.map((variant) => `${variant.sku || ""} ${JSON.stringify(variant.attribute_values || {})}`).join(" ");
+        const searchable = normalizeValue(
+          `${productNamePt} ${productNameEs} ${product.category_name_pt || ""} ${product.category_name_es || ""} ${variantText}`
+        );
+        if (!searchable.includes(query)) {
+          return false;
+        }
+      }
+
+      const attributes = variants.flatMap((variant) => Object.entries(parseAttributeObject(variant.attribute_values)));
+      const valuesByKeyMatch = (matchers) =>
+        attributes
+          .filter(([key]) => matchers.some((matcher) => normalizeValue(key).includes(normalizeValue(matcher))))
+          .map(([, value]) => String(value || ""));
+
+      const genderValues = valuesByKeyMatch(["gender", "genero", "gênero", "sexo"]);
+      if (selectedProductGenders.length > 0) {
+        const genderMap = {
+          mulher: ["mulher", "female", "woman", "women"],
+          homem: ["homem", "male", "man", "men"],
+          unisexo: ["unisexo", "unisex"]
+        };
+        const matchesGender = selectedProductGenders.some((selected) => {
+          const tokens = genderMap[normalizeValue(selected)] || [normalizeValue(selected)];
+          return genderValues.some((value) => tokens.some((token) => normalizeValue(value).includes(token)));
+        });
+        if (!matchesGender) return false;
+      }
+
+      const sizeValues = valuesByKeyMatch(["size", "tamanho"]);
+      if (selectedProductSizes.length > 0) {
+        const matchesSize = selectedProductSizes.some((size) =>
+          sizeValues.some((value) => normalizeValue(value).split(/[^a-z0-9]+/).includes(normalizeValue(size)))
+        );
+        if (!matchesSize) return false;
+      }
+
+      const colorValues = valuesByKeyMatch(["color", "colour", "cor"]);
+      if (selectedProductColors.length > 0) {
+        const matchesColor = selectedProductColors.some((selected) =>
+          colorValues.some((value) => colorMatches(value, selected))
+        );
+        if (!matchesColor) return false;
+      }
+
+      const brandValues = valuesByKeyMatch(["brand", "marca"]);
+      if (selectedProductBrands.length > 0) {
+        const matchesBrand = selectedProductBrands.some((selectedBrand) => {
+          const selectedNorm = normalizeValue(selectedBrand);
+          return brandValues.some((value) => normalizeValue(value).includes(selectedNorm)) || normalizeValue(productNameCombined).includes(selectedNorm);
+        });
+        if (!matchesBrand) return false;
+      }
+
+      return true;
+    });
+  }, [
+    products,
+    productSearch,
+    selectedProductCategories,
+    selectedProductGenders,
+    selectedProductSizes,
+    selectedProductColors,
+    selectedProductBrands
+  ]);
   const getProductThumbnail = (product) => {
     const firstImage = Array.isArray(product.images) ? product.images.find((image) => image?.image_url)?.image_url || "" : "";
     return resolveApiFileUrl(firstImage);
@@ -195,6 +329,10 @@ const Products = () => {
     setProductImages([]);
     setProductImagePreviews([]);
     setProductImageTags([]);
+    setSelectedFormGenders([]);
+    setSelectedFormSizes([]);
+    setSelectedFormColors([]);
+    setSelectedFormBrands([]);
   };
   const saveProduct = async () => {
     try {
@@ -217,14 +355,31 @@ const Products = () => {
       const hasDiscountPercent = Number.isFinite(parsedDiscountPercent) && parsedDiscountPercent > 0;
       const effectivePrice = hasDiscountPercent ? roundMoney(basePrice * (1 - parsedDiscountPercent / 100)) : basePrice;
       const effectiveCompareAt = hasDiscountPercent ? roundMoney(basePrice) : manualCompareAt;
-      const parsedAttributeValues = variantAttributes.reduce((acc, item) => {
-        const key = item.name.trim();
-        if (!key) return acc;
+      const attributeMap = new Map();
+      const addAttributeValues = (key, values) => {
+        const safeKey = String(key || "").trim();
+        if (!safeKey) return;
+        const normalizedKey = normalizeValue(safeKey);
+        const safeValues = values.map((value) => String(value || "").trim()).filter(Boolean);
+        if (safeValues.length === 0) return;
+        if (!attributeMap.has(normalizedKey)) {
+          attributeMap.set(normalizedKey, { key: safeKey, values: new Set() });
+        }
+        const entry = attributeMap.get(normalizedKey);
+        safeValues.forEach((value) => entry.values.add(value));
+      };
+
+      variantAttributes.forEach((item) => {
         const values = item.value.split(",").map((value) => value.trim()).filter((value) => Boolean(value));
-        if (values.length === 0) return acc;
-        acc.push([key, values]);
-        return acc;
-      }, []);
+        addAttributeValues(item.name, values);
+      });
+
+      addAttributeValues("gender", selectedFormGenders);
+      addAttributeValues("size", selectedFormSizes);
+      addAttributeValues("color", selectedFormColors);
+      addAttributeValues("brand", selectedFormBrands);
+
+      const parsedAttributeValues = Array.from(attributeMap.values()).map((entry) => [entry.key, Array.from(entry.values)]);
       const attributeCombinations = buildAttributeCombinations(parsedAttributeValues);
       const baseSku = form.sku.trim() || `SKU-${Date.now()}`;
       const variantsPayload = attributeCombinations.map((attributes, index) => {
@@ -315,6 +470,10 @@ const Products = () => {
     setProductImages([]);
     setProductImagePreviews([]);
     setProductImageTags([]);
+    setSelectedFormGenders([]);
+    setSelectedFormSizes([]);
+    setSelectedFormColors([]);
+    setSelectedFormBrands([]);
   };
   const updateStock = async () => {
     try {
@@ -337,7 +496,127 @@ const Products = () => {
       {error ? <p className='text-sm text-destructive'>{error}</p> : null}
 
       <Card>
-        <CardHeader><CardTitle>Products</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Product Filters</CardTitle></CardHeader>
+        <CardContent className='space-y-4'>
+          <Input
+            placeholder='Search products (name, category, sku, attributes)'
+            value={productSearch}
+            onChange={(e) => setProductSearch(e.target.value)}
+          />
+
+          <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-5'>
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>Categoria</p>
+              <div className='space-y-2'>
+                {categories.map((category) => {
+                  const categoryId = String(category.id);
+                  const checked = selectedProductCategories.includes(categoryId);
+                  return <label key={categoryId} className='flex items-center gap-2 text-sm'>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => setSelectedProductCategories((prev) => toggleSelection(prev, categoryId))}
+                      />
+                      {category.name_pt || category.name_es || categoryId}
+                    </label>;
+                })}
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>Genero</p>
+              <div className='space-y-2'>
+                {adminGenderOptions.map((gender) => {
+                  const checked = selectedProductGenders.includes(gender);
+                  return <label key={gender} className='flex items-center gap-2 text-sm'>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => setSelectedProductGenders((prev) => toggleSelection(prev, gender))}
+                      />
+                      {gender}
+                    </label>;
+                })}
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>Tamanho</p>
+              <div className='grid grid-cols-3 gap-2'>
+                {adminSizeOptions.map((size) => {
+                  const active = selectedProductSizes.includes(size);
+                  return <button
+                      key={size}
+                      type='button'
+                      className={`border px-2 py-1 text-xs ${active ? "border-black bg-black text-white" : "border-black/20"}`}
+                      onClick={() => setSelectedProductSizes((prev) => toggleSelection(prev, size))}
+                    >
+                      {size}
+                    </button>;
+                })}
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>Cor</p>
+              <div className='grid grid-cols-3 gap-3'>
+                {adminColorSwatches.map((item) => {
+                  const active = selectedProductColors.includes(item.name);
+                  return <button
+                      key={item.name}
+                      type='button'
+                      className='flex flex-col items-center gap-1 text-[11px]'
+                      onClick={() => setSelectedProductColors((prev) => toggleSelection(prev, item.name))}
+                    >
+                      <span
+                        className={`h-5 w-5 rounded-full ${item.light ? "ring-1 ring-black/20" : ""} ${active ? "ring-2 ring-black ring-offset-2" : ""}`}
+                        style={{ backgroundColor: item.color }}
+                      />
+                      {item.name}
+                    </button>;
+                })}
+              </div>
+            </div>
+
+            <div className='space-y-2'>
+              <p className='text-sm font-medium'>Marcas</p>
+              <div className='space-y-2'>
+                {adminBrandOptions.map((brand) => {
+                  const checked = selectedProductBrands.includes(brand);
+                  return <label key={brand} className='flex items-center gap-2 text-sm'>
+                      <input
+                        type='checkbox'
+                        checked={checked}
+                        onChange={() => setSelectedProductBrands((prev) => toggleSelection(prev, brand))}
+                      />
+                      {brand}
+                    </label>;
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className='flex items-center justify-between gap-3'>
+            <p className='text-xs text-muted-foreground'>Showing {filteredProducts.length} of {products.length} products</p>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setProductSearch("");
+                setSelectedProductCategories([]);
+                setSelectedProductGenders([]);
+                setSelectedProductSizes([]);
+                setSelectedProductColors([]);
+                setSelectedProductBrands([]);
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader><CardTitle>Products ({filteredProducts.length})</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
@@ -353,7 +632,7 @@ const Products = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => <TableRow key={product.id}>
+              {filteredProducts.map((product) => <TableRow key={product.id}>
                   <TableCell>{product.id}</TableCell>
                   <TableCell>
                     {getProductThumbnail(product) ? <img
@@ -377,6 +656,7 @@ const Products = () => {
   />
                   </TableCell>
                 </TableRow>)}
+              {filteredProducts.length === 0 ? <TableRow><TableCell colSpan={8}>No products match current filters.</TableCell></TableRow> : null}
             </TableBody>
           </Table>
         </CardContent>
@@ -512,6 +792,86 @@ const Products = () => {
     value={form.currency}
     onChange={(e) => setForm((p) => ({ ...p, currency: e.target.value }))}
   />
+          <div className='md:col-span-2 space-y-3 rounded-md border bg-muted/20 p-3'>
+            <p className='text-sm font-medium'>Storefront Features</p>
+            <p className='text-xs text-muted-foreground'>
+              Select sidebar features here so product variants are saved with these attributes.
+            </p>
+
+            <div className='grid gap-4 md:grid-cols-2 xl:grid-cols-4'>
+              <div className='space-y-2'>
+                <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>Genero</p>
+                <div className='space-y-2'>
+                  {adminGenderOptions.map((gender) => {
+                    const checked = selectedFormGenders.includes(gender);
+                    return <label key={gender} className='flex items-center gap-2 text-sm'>
+                        <input
+                          type='checkbox'
+                          checked={checked}
+                          onChange={() => setSelectedFormGenders((prev) => toggleSelection(prev, gender))}
+                        />
+                        {gender}
+                      </label>;
+                  })}
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>Tamanho</p>
+                <div className='grid grid-cols-3 gap-2'>
+                  {adminSizeOptions.map((size) => {
+                    const active = selectedFormSizes.includes(size);
+                    return <button
+                        key={size}
+                        type='button'
+                        className={`border px-2 py-1 text-xs ${active ? "border-black bg-black text-white" : "border-black/20"}`}
+                        onClick={() => setSelectedFormSizes((prev) => toggleSelection(prev, size))}
+                      >
+                        {size}
+                      </button>;
+                  })}
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>Cor</p>
+                <div className='grid grid-cols-3 gap-3'>
+                  {adminColorSwatches.map((item) => {
+                    const active = selectedFormColors.includes(item.name);
+                    return <button
+                        key={item.name}
+                        type='button'
+                        className='flex flex-col items-center gap-1 text-[11px]'
+                        onClick={() => setSelectedFormColors((prev) => toggleSelection(prev, item.name))}
+                      >
+                        <span
+                          className={`h-5 w-5 rounded-full ${item.light ? "ring-1 ring-black/20" : ""} ${active ? "ring-2 ring-black ring-offset-2" : ""}`}
+                          style={{ backgroundColor: item.color }}
+                        />
+                        {item.name}
+                      </button>;
+                  })}
+                </div>
+              </div>
+
+              <div className='space-y-2'>
+                <p className='text-xs font-semibold uppercase tracking-wide text-muted-foreground'>Marcas</p>
+                <div className='space-y-2'>
+                  {adminBrandOptions.map((brand) => {
+                    const checked = selectedFormBrands.includes(brand);
+                    return <label key={brand} className='flex items-center gap-2 text-sm'>
+                        <input
+                          type='checkbox'
+                          checked={checked}
+                          onChange={() => setSelectedFormBrands((prev) => toggleSelection(prev, brand))}
+                        />
+                        {brand}
+                      </label>;
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
           <div className='md:col-span-2 space-y-2'>
             <p className='text-sm text-muted-foreground'>Variant attributes</p>
             {variantAttributes.map((attr, index) => <div key={attr.id} className='flex flex-col gap-2 sm:flex-row sm:items-center'>

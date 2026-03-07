@@ -93,28 +93,86 @@ function extractColor(attributes) {
   return 'Cor disponivel'
 }
 
+function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+}
+
+const colorAliasMap = {
+  preto: ['preto', 'preta', 'black', 'noir'],
+  azul: ['azul', 'blue', 'navy'],
+  castanho: ['castanho', 'marrom', 'brown'],
+  verde: ['verde', 'green'],
+  cinzento: ['cinzento', 'cinza', 'gris', 'grey', 'gray'],
+  laranja: ['laranja', 'orange'],
+  rosa: ['rosa', 'pink'],
+  vermelho: ['vermelho', 'red', 'rojo'],
+  bege: ['bege', 'beige'],
+}
+
+function getColorTokens(colorName) {
+  const key = normalizeText(colorName)
+  return colorAliasMap[key] || [key]
+}
+
+function colorMatches(value, selectedColor) {
+  const haystack = normalizeText(value)
+  if (!haystack) return false
+  return getColorTokens(selectedColor).some((token) => haystack.includes(token))
+}
+
+function pickImageByColor(imageOptions, selectedColor) {
+  if (!Array.isArray(imageOptions) || imageOptions.length === 0) return ''
+  const match = imageOptions.find((item) => colorMatches(item.searchText, selectedColor))
+  return match?.url || ''
+}
+
 function mapProductToCard(product, index) {
   const variants = Array.isArray(product?.variants) ? product.variants : []
-  const primaryVariant = variants.find((variant) => variant?.is_active !== false) || variants[0] || null
-  const price = toNumber(primaryVariant?.price ?? product?.base_price, 0)
-  const compareAt = toNumber(primaryVariant?.compare_at_price, 0)
-  const hasDiscount = compareAt > price && compareAt > 0
-  const discountPct = hasDiscount ? Math.round(((compareAt - price) / compareAt) * 100) : 0
-  const image = Array.isArray(product?.images) && product.images[0]?.image_url
-    ? resolveAssetUrl(product.images[0].image_url)
-    : productImage
+  const variantOptions = variants.map((variant) => {
+    const variantPrice = toNumber(variant?.price ?? product?.base_price, 0)
+    const variantCompareAt = toNumber(variant?.compare_at_price, 0)
+    const hasDiscount = variantCompareAt > variantPrice && variantCompareAt > 0
+    const discountPct = hasDiscount ? Math.round(((variantCompareAt - variantPrice) / variantCompareAt) * 100) : 0
+    return {
+      variantId: variant?.id ?? null,
+      color: extractColor(variant?.attribute_values),
+      price: formatPrice(variantPrice),
+      oldPrice: hasDiscount ? formatPrice(variantCompareAt) : null,
+      discountLabel: hasDiscount ? `${discountPct}% off` : null,
+      isActive: variant?.is_active !== false,
+    }
+  })
+
+  const primaryVariant = variantOptions.find((variant) => variant.isActive) || variantOptions[0] || null
+
+  const imageOptions = Array.isArray(product?.images)
+    ? product.images
+        .map((image) => ({
+          url: resolveAssetUrl(image?.image_url || ''),
+          searchText: `${image?.alt_text || ''} ${image?.image_url || ''}`,
+        }))
+        .filter((item) => Boolean(item.url))
+    : []
+
+  const image = imageOptions[0]?.url || productImage
 
   return {
     id: product?.id || `api-product-${index}`,
     categoryId: product?.category_id != null ? String(product.category_id) : '',
     categoryName: product?.category_name_pt || product?.category_name_es || '',
     title: product?.name_pt || product?.name_es || product?.sku || `Produto ${index + 1}`,
-    color: extractColor(primaryVariant?.attribute_values),
-    price: formatPrice(price),
-    oldPrice: hasDiscount ? formatPrice(compareAt) : null,
-    discountLabel: hasDiscount ? `${discountPct}% off` : null,
+    color: primaryVariant?.color || 'Cor disponivel',
+    price: primaryVariant?.price || formatPrice(product?.base_price),
+    oldPrice: primaryVariant?.oldPrice || null,
+    discountLabel: primaryVariant?.discountLabel || null,
     image,
     stockLabel: null,
+    variantOptions,
+    imageOptions,
   }
 }
 
@@ -178,9 +236,42 @@ function ProductsPage() {
 
   const visibleProducts = useMemo(() => {
     const base = products.length > 0 ? products : fallbackProducts
-    if (!selectedCategoryId) return base
-    return base.filter((product) => String(product?.categoryId || '').trim() === selectedCategoryId)
-  }, [products, selectedCategoryId])
+    const filteredByCategory = selectedCategoryId
+      ? base.filter((product) => String(product?.categoryId || '').trim() === selectedCategoryId)
+      : base
+
+    if (!selectedColor) return filteredByCategory
+
+    return filteredByCategory
+      .map((product) => {
+        const matchedVariant = Array.isArray(product?.variantOptions)
+          ? product.variantOptions.find((variant) => colorMatches(variant.color, selectedColor))
+          : null
+        const matchedImage = pickImageByColor(product?.imageOptions, selectedColor)
+
+        if (matchedVariant) {
+          return {
+            ...product,
+            color: matchedVariant.color === 'Cor disponivel' ? selectedColor : matchedVariant.color,
+            price: matchedVariant.price,
+            oldPrice: matchedVariant.oldPrice,
+            discountLabel: matchedVariant.discountLabel,
+            image: matchedImage || product.image,
+          }
+        }
+
+        if (colorMatches(product?.color, selectedColor) || matchedImage) {
+          return {
+            ...product,
+            color: colorMatches(product?.color, selectedColor) ? product.color : selectedColor,
+            image: matchedImage || product.image,
+          }
+        }
+
+        return null
+      })
+      .filter(Boolean)
+  }, [products, selectedCategoryId, selectedColor])
 
   const toggleColor = (name) => {
     setSelectedColor((prev) => (prev === name ? null : name))
