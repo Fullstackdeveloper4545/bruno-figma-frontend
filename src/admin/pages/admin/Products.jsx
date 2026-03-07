@@ -255,7 +255,7 @@ const Products = () => {
       }).filter((specification) => Boolean(specification));
       let imagePayload = [];
       if (productImages.length > 0) {
-        const uploadedImages = await Promise.all(productImages.map((file) => uploadFile("/api/uploads", file)));
+        const uploadedImages = await Promise.all(productImages.map((file) => uploadFile(file)));
         imagePayload = uploadedImages.map((uploaded, index) => ({
           image_url: uploaded.url,
           alt_text: productImageTags[index]?.trim() || form.name_pt || form.name_es || "",

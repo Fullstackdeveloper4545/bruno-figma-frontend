@@ -72,7 +72,7 @@ const Blogs = () => {
       setError("");
       let coverImageUrl = form.cover_image_url.trim();
       if (coverFile) {
-        const uploaded = await uploadFile("/api/uploads", coverFile);
+        const uploaded = await uploadFile(coverFile);
         coverImageUrl = uploaded.url;
       }
       const payload = {

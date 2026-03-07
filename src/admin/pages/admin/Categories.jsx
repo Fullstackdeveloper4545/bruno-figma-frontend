@@ -91,7 +91,7 @@ const Categories = () => {
       setStatusMessage("");
       let imageUrl = form.image_url.trim();
       if (imageFile) {
-        const uploaded = await uploadFile("/api/uploads", imageFile);
+        const uploaded = await uploadFile(imageFile);
         imageUrl = uploaded.url;
       }
       const payload = {
