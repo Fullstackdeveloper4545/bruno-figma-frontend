@@ -45,9 +45,13 @@ const AdminAuthProvider = ({ children }) => {
       if (success) {
         window.sessionStorage.removeItem(UNLOAD_MARKER_KEY);
         window.sessionStorage.setItem(STORAGE_KEY, "true");
+        window.sessionStorage.setItem("admin:email", email.trim());
+        window.localStorage.setItem("admin:email", email.trim());
       } else {
         window.sessionStorage.removeItem(UNLOAD_MARKER_KEY);
         window.sessionStorage.removeItem(STORAGE_KEY);
+        window.sessionStorage.removeItem("admin:email");
+        window.localStorage.removeItem("admin:email");
       }
     }
     return success;
@@ -57,6 +61,8 @@ const AdminAuthProvider = ({ children }) => {
     if (typeof window !== "undefined") {
       window.sessionStorage.removeItem(UNLOAD_MARKER_KEY);
       window.sessionStorage.removeItem(STORAGE_KEY);
+      window.sessionStorage.removeItem("admin:email");
+      window.localStorage.removeItem("admin:email");
     }
   };
   const value = useMemo(() => ({ isAdmin, login, logout }), [isAdmin]);
@@ -71,5 +77,6 @@ const useAdminAuth = () => {
 };
 export {
   AdminAuthProvider,
-  useAdminAuth
+  useAdminAuth,
+  ADMIN_EMAIL
 };

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 function Card({ className, ...props }) {
-  return <div className={cn('rounded-xl border bg-card text-card-foreground shadow-sm', className)} {...props} />
+  return <div className={cn('rounded-xl bg-card text-card-foreground ', className)} {...props} />
 }
 
 function CardHeader({ className, ...props }) {
@@ -13,7 +13,7 @@ function CardTitle({ className, ...props }) {
 }
 
 function CardDescription({ className, ...props }) {
-  return <p className={cn('text-sm text-muted-foreground', className)} {...props} />
+  return <p className={cn('text-[16px] text-muted-foreground', className)} {...props} />
 }
 
 function CardContent({ className, ...props }) {

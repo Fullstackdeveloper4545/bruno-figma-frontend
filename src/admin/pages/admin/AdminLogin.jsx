@@ -5,6 +5,7 @@ import { useAdminAuth } from "@/contexts/AdminAuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { adminApi } from "@/lib/adminApi";
 const AdminLogin = () => {
   const navigate = useNavigate();
   const { login } = useAdminAuth();
@@ -12,15 +13,38 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const handleSubmit = (event) => {
+  const guessLocation = () => {
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && tz.includes("/")) {
+        const [, city] = tz.split("/");
+        return city?.replace(/_/g, " ");
+      }
+      return tz || null;
+    } catch {
+      return null;
+    }
+  };
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const success = login(email.trim(), password.trim());
     if (success) {
       setError("");
+      // Fire-and-forget audit log; ignore errors so login flow is not blocked.
+      void adminApi.createLoginActivity({
+        admin_email: email.trim().toLowerCase(),
+        status: "success",
+        location: guessLocation()
+      });
       navigate("/admin", { replace: true });
       return;
     }
     setError("Invalid admin credentials. Redirecting to the user dashboard.");
+    void adminApi.createLoginActivity({
+      admin_email: email.trim().toLowerCase(),
+      status: "failed",
+      location: guessLocation()
+    });
     navigate("/", { replace: true });
   };
   return <div className="flex min-h-svh items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.25),_transparent_60%)] px-4">

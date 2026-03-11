@@ -71,6 +71,9 @@ export const adminApi = {
   resendInvoice: (id: number) => postJson(`/api/invoices/${id}/resend`, {}),
   syncInvoices: () => postJson('/api/invoices/sync/pending', {}),
 
+  listLoginActivity: () => getJson('/api/security/login-activity'),
+  createLoginActivity: (payload: unknown) => postJson('/api/security/login-activity', payload),
+
   getLanguages: () => getJson('/api/languages'),
   setLanguages: (languages: string[]) => putJson('/api/languages', { languages }),
 
@@ -84,4 +87,7 @@ export const adminApi = {
   createBlogPost: (payload: unknown) => postJson('/api/blog/admin', payload),
   updateBlogPost: (id: string, payload: unknown) => putJson(`/api/blog/admin/${id}`, payload),
   deleteBlogPost: (id: string) => deleteJson(`/api/blog/admin/${id}`),
+
+  changeAdminPassword: (payload: { email: string; current_password: string; new_password: string }) =>
+    postJson('/api/auth/change-password', payload),
 };

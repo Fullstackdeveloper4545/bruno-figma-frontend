@@ -1,10 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 @source "./**/*.{js,jsx,ts,tsx}";
 
 @theme {
-  --font-sans: "Space Grotesk", "Helvetica Neue", Helvetica, sans-serif;
-  --font-display: "Fraunces", "Times New Roman", serif;
+  --font-sans: "Helvetica", "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Helvetica", "Helvetica Neue", Arial, sans-serif;
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
@@ -86,47 +85,47 @@
 }
 
 :root {
-  --background: 222 16% 86%;
-  --foreground: 222 35% 12%;
+  --background: 190 15% 95%;
+  --foreground: 200 28% 18%;
 
   --card: 0 0% 100%;
-  --card-foreground: 222 35% 12%;
+  --card-foreground: 200 28% 18%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 35% 12%;
+  --popover-foreground: 200 28% 18%;
 
-  --primary: 222 42% 18%;
+  --primary: 192 23% 46%;
   --primary-foreground: 0 0% 98%;
 
-  --secondary: 222 14% 82%;
-  --secondary-foreground: 222 35% 12%;
+  --secondary: 190 16% 90%;
+  --secondary-foreground: 200 28% 18%;
 
-  --muted: 222 12% 78%;
-  --muted-foreground: 220 10% 45%;
+  --muted: 192 12% 82%;
+  --muted-foreground: 195 10% 38%;
 
-  --accent: 28 88% 55%;
+  --accent: 136 45% 46%;
   --accent-foreground: 0 0% 100%;
 
-  --destructive: 0 72% 52%;
+  --destructive: 0 68% 52%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 222 10% 72%;
-  --input: 222 10% 72%;
-  --ring: 222 42% 18%;
+  --border: 190 12% 82%;
+  --input: 190 12% 82%;
+  --ring: 192 23% 46%;
 
   --radius: 0.5rem;
 
-  --success: 146 45% 40%;
+  --success: 136 45% 46%;
   --success-foreground: 0 0% 100%;
 
-  --sidebar-background: 222 14% 84%;
-  --sidebar-foreground: 222 35% 18%;
-  --sidebar-primary: 222 42% 18%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 222 12% 80%;
-  --sidebar-accent-foreground: 222 35% 18%;
-  --sidebar-border: 222 10% 72%;
-  --sidebar-ring: 28 88% 55%;
+  --sidebar-background: 190 19% 52%; /* #6C939B */
+  --sidebar-foreground: 180 33% 96%;
+  --sidebar-primary: 193 27% 42%;
+  --sidebar-primary-foreground: 180 33% 96%;
+  --sidebar-accent: 193 20% 55%;
+  --sidebar-accent-foreground: 180 33% 98%;
+  --sidebar-border: 193 18% 54%;
+  --sidebar-ring: 136 45% 46%;
 
   --black: #000000;
   --white: #ffffff;
@@ -206,9 +205,9 @@
   --sidebar-ring: 217.2 91.2% 59.8%;
 }
 
-* {
-  border-color: hsl(var(--border));
-}
+/* * {
+  /* border-color: hsl(var(--border)); 
+} */
 
 body {
   margin: 0;
@@ -219,6 +218,4 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.font-display {
-  font-family: "Fraunces", "Times New Roman", serif;
-}
+

@@ -83,18 +83,18 @@ function SidebarGroup({ className, ...props }) {
 function SidebarGroupLabel({ className, ...props }) {
   return (
     <p
-      className={cn('px-2 text-xs uppercase tracking-wide text-muted-foreground group-data-[collapsible=icon]:hidden', className)}
+      className={cn('px-2 text-[10px] uppercase tracking-wide text-white group-data-[collapsible=icon]:hidden', className)}
       {...props}
     />
   )
 }
 
 function SidebarGroupContent({ className, ...props }) {
-  return <div className={cn('', className)} {...props} />
+  return <div className={cn('mb-4', className)} {...props} />
 }
 
 function SidebarMenu({ className, ...props }) {
-  return <ul className={cn('space-y-1', className)} {...props} />
+  return <ul className={cn('space-y-1 text-[14px]', className)} {...props} />
 }
 
 function SidebarMenuItem({ className, ...props }) {
@@ -116,7 +116,6 @@ function SidebarMenuBadge({ className, ...props }) {
 function SidebarMenuButton({ className, asChild = false, isActive = false, tooltip, children, ...props }) {
   const classes = cn(
     'flex w-full items-center gap-2 rounded-md px-2 py-2 text-sm transition-colors group-data-[collapsible=icon]:justify-center',
-    isActive ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'hover:bg-secondary',
     className
   )
 
