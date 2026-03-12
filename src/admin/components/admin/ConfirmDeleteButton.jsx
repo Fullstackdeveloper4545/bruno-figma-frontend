@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/alert-dialog";
 const ConfirmDeleteButton = ({
   onConfirm,
-  entityName = "this item",
+  entityName = "este item",
   title,
   description,
-  triggerLabel = "Delete",
-  confirmLabel = "Delete",
+  triggerLabel = "Eliminar",
+  confirmLabel = "Eliminar",
   size = "sm",
   disabled = false
 }) => <AlertDialog>
@@ -27,13 +27,13 @@ const ConfirmDeleteButton = ({
     </AlertDialogTrigger>
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle>{title || `Delete ${entityName}?`}</AlertDialogTitle>
+        <AlertDialogTitle>{title || `Eliminar ${entityName}?`}</AlertDialogTitle>
         <AlertDialogDescription>
-          {description || `This action cannot be undone. ${entityName} will be permanently deleted.`}
+          {description || `Esta ação não pode ser anulada. ${entityName} será eliminado permanentemente.`}
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogCancel>Cancelar</AlertDialogCancel>
         <AlertDialogAction
   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
   onClick={() => void onConfirm()}

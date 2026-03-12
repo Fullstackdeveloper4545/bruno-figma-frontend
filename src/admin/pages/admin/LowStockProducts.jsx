@@ -26,7 +26,7 @@ const LowStockProducts = () => {
       );
     } catch (e) {
       setRows([]);
-      setError(e instanceof Error ? e.message : "Failed to load low stock products");
+      setError(e instanceof Error ? e.message : "Falha ao carregar produtos com pouco stock");
     } finally {
       setLoading(false);
     }
@@ -36,10 +36,10 @@ const LowStockProducts = () => {
   }, []);
   return <div className="space-y-6">
       <PageHeader
-    title="Low Stock Products"
-    description="Products with stock less than 10, grouped by store assignment."
+    title="Produtos com pouco stock"
+    description="Produtos com stock inferior a 10, agrupados por loja."
     actions={<Button variant="outline" onClick={() => navigate("/admin")}>
-            Back to Dashboard
+            Voltar ao dashboard
           </Button>}
   />
 
@@ -47,30 +47,30 @@ const LowStockProducts = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Low Stock List</CardTitle>
+          <CardTitle>Lista de stock baixo</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
+                <TableHead>Produto</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead>Store</TableHead>
-                <TableHead>Stock Left</TableHead>
+                <TableHead>Loja</TableHead>
+                <TableHead>Stock restante</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? <TableRow>
-                  <TableCell colSpan={4}>Loading...</TableCell>
+                  <TableCell colSpan={4}>A carregar...</TableCell>
                 </TableRow> : rows.length === 0 ? <TableRow>
-                  <TableCell colSpan={4}>No products below 10 units.</TableCell>
+                  <TableCell colSpan={4}>Nenhum produto abaixo das 10 unidades.</TableCell>
                 </TableRow> : rows.map((row) => <TableRow key={`${row.sku}-${row.store_name}-${row.name}`}>
                     <TableCell>{row.name}</TableCell>
                     <TableCell>{row.sku}</TableCell>
                     <TableCell>{row.store_name}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="bg-amber-100 text-amber-700">
-                        {row.stock_left} left
+                        {row.stock_left} restantes
                       </Badge>
                     </TableCell>
                   </TableRow>)}

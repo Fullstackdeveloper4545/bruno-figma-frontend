@@ -39,7 +39,7 @@ const AdminLogin = () => {
       navigate("/admin", { replace: true });
       return;
     }
-    setError("Invalid admin credentials. Redirecting to the user dashboard.");
+    setError("Credenciais de administrador inválidas. A redirecionar para a loja.");
     void adminApi.createLoginActivity({
       admin_email: email.trim().toLowerCase(),
       status: "failed",
@@ -50,13 +50,13 @@ const AdminLogin = () => {
   return <div className="flex min-h-svh items-center justify-center bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.25),_transparent_60%)] px-4">
       <Card className="w-full max-w-md border-border/60 bg-card/95 shadow-lg">
         <CardHeader>
-          <CardTitle className="font-display text-2xl">Admin Sign In</CardTitle>
-          <CardDescription>Enter admin credentials to access the dashboard.</CardDescription>
+          <CardTitle className="font-display text-2xl">Login de Administrador</CardTitle>
+          <CardDescription>Introduza as credenciais de admin para aceder ao painel.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Admin Email</label>
+              <label className="text-sm font-medium">Email do administrador</label>
               <Input
     value={email}
     onChange={(event) => setEmail(event.target.value)}
@@ -66,7 +66,7 @@ const AdminLogin = () => {
   />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium">Palavra-passe</label>
               <div className="relative">
                 <Input
     value={password}
@@ -80,7 +80,7 @@ const AdminLogin = () => {
     type="button"
     onClick={() => setShowPassword((prev) => !prev)}
     className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground"
-    aria-label={showPassword ? "Hide password" : "Show password"}
+    aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
   >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -88,7 +88,7 @@ const AdminLogin = () => {
             </div>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Button className="w-full" type="submit">
-              Sign In
+              Entrar
             </Button>
             <Button
     className="w-full"
@@ -96,7 +96,7 @@ const AdminLogin = () => {
     type="button"
     onClick={() => navigate("/", { replace: true })}
   >
-              Continue as User
+              Continuar como utilizador
             </Button>
           </form>
         </CardContent>

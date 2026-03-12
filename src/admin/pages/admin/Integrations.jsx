@@ -33,31 +33,40 @@ const Integrations = () => {
     void load();
   }, []);
   return <div className='space-y-6'>
-      <PageHeader title='Integration Settings' description='Toggle integration, manual sync, and webhook security.' />
+      <PageHeader title='Definições de integração' description='Defina as suas integrações, sincronize manualmente e trabalhe a segurança dos webhooks.' />
       {message ? <p className='text-sm'>{message}</p> : null}
 
-      <Card>
-        <CardHeader><CardTitle>Stock Integration</CardTitle></CardHeader>
-        <CardContent className='grid gap-3 md:grid-cols-2'>
-          <Input placeholder='API Base URL' value={settings.base_url || ""} onChange={(e) => setSettings((p) => ({ ...p, base_url: e.target.value }))} />
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Integração de stock</CardTitle></CardHeader>
+        <CardContent className='grid gap-6 md:grid-cols-2'>
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='URL base da API' value={settings.base_url || ""} onChange={(e) => setSettings((p) => ({ ...p, base_url: e.target.value }))} />
           <Input
-    placeholder='Integration Name (e.g. WordPress)'
+    className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0'
+    placeholder='Nome da integração (ex.: WordPress)'
     value={settings.integration_name || ""}
     onChange={(e) => setSettings((p) => ({ ...p, integration_name: e.target.value }))}
   />
-          <Input placeholder='Webhook Secret' value={settings.webhook_secret || ""} onChange={(e) => setSettings((p) => ({ ...p, webhook_secret: e.target.value }))} />
-          <div className='flex items-center gap-2'><span>Integration ON</span><Switch checked={settings.is_active} onCheckedChange={(checked) => setSettings((p) => ({ ...p, is_active: checked }))} /></div>
-          <Button
-    onClick={() => void adminApi.updateIntegrationSettings(settings).then(() => setMessage("Settings saved")).then(() => notifyIntegrationStatusUpdated())}
-  >
-            Save
-          </Button>
-          <Button variant='outline' onClick={() => void adminApi.manualSync().then(() => load()).then(() => setMessage("Manual sync completed"))}>Manual Sync</Button>
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Segredo do webhook' value={settings.webhook_secret || ""} onChange={(e) => setSettings((p) => ({ ...p, webhook_secret: e.target.value }))} />
+          <div className='flex h-12 items-center gap-3 rounded-xl border border-slate-400/60 bg-white px-4 text-sm'><span>Integração ativa</span><Switch checked={settings.is_active} onCheckedChange={(checked) => setSettings((p) => ({ ...p, is_active: checked }))} /></div>
+          <div className='flex flex-wrap gap-3 md:col-span-2'>
+            <Button
+              className='!h-10 !w-28 !justify-center !rounded-md !bg-black !text-white hover:!bg-black/90'
+              onClick={() => void adminApi.updateIntegrationSettings(settings).then(() => setMessage("Definições guardadas")).then(() => notifyIntegrationStatusUpdated())}
+            >
+              Guardar
+            </Button>
+            <Button
+              className='!h-10 !w-44 !justify-center !rounded-md !bg-zinc-400 !text-white hover:!bg-zinc-500'
+              onClick={() => void adminApi.manualSync().then(() => load()).then(() => setMessage("Sincronização manual concluída"))}
+            >
+              Sincronização manual
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>Sync Logs</CardTitle></CardHeader>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Registos de sincronização</CardTitle></CardHeader>
         <CardContent className='space-y-2'>
           {logs.map((log) => <p key={log.id} className='text-sm'>{log.created_at} | {log.mode} | {log.status}</p>)}
         </CardContent>

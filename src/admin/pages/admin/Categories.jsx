@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { adminApi } from "@/lib/adminApi";
@@ -19,6 +19,8 @@ const Categories = () => {
   const [editingId, setEditingId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const fileInputRef = useRef(null);
+  const [activeCategoryActionId, setActiveCategoryActionId] = useState(null);
   const [error, setError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [isSyncingPresets, setIsSyncingPresets] = useState(false);
@@ -26,7 +28,7 @@ const Categories = () => {
     try {
       setRows(await adminApi.listCategories());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load categories");
+      setError(e instanceof Error ? e.message : "Falha ao carregar categorias");
     }
   };
   useEffect(() => {
@@ -41,11 +43,13 @@ const Categories = () => {
       image_url: row.image_url ?? ""
     });
     setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
   const resetForm = () => {
     setEditingId(null);
     setForm({ name_pt: "", name_es: "", slug: "", image_url: "" });
     setImageFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
   useEffect(() => {
     if (!imageFile) {
@@ -73,10 +77,10 @@ const Categories = () => {
       }
       await load();
       setStatusMessage(
-        createdCount > 0 ? `${createdCount} frontend categories were added to admin.` : "Frontend categories are already synced."
+        createdCount > 0 ? `${createdCount} categorias do site foram adicionadas ao backoffice.` : "As categorias do site já estavam sincronizadas."
       );
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to sync frontend category presets");
+      setError(e instanceof Error ? e.message : "Falha ao sincronizar categorias do site");
     } finally {
       setIsSyncingPresets(false);
     }
@@ -84,7 +88,7 @@ const Categories = () => {
   const handleSubmit = async () => {
     try {
       if (!form.name_pt && !form.name_es) {
-        setError("Provide at least a PT or ES name.");
+        setError("Indique pelo menos um nome PT ou ES.");
         return;
       }
       setError("");
@@ -110,44 +114,79 @@ const Categories = () => {
       resetForm();
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save category");
+      setError(e instanceof Error ? e.message : "Falha ao guardar a categoria");
+    }
+  };
+  const handleToggleCategoryStatus = async (category) => {
+    try {
+      setActiveCategoryActionId(category.id);
+      setError("");
+      setStatusMessage("");
+      await adminApi.updateCategory(category.id, { is_active: category.is_active === false });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao atualizar o estado da categoria");
+    } finally {
+      setActiveCategoryActionId(null);
     }
   };
   return <div className='space-y-6'>
-      <PageHeader title='Category Management' description='CRUD categories with PT/ES names and sync frontend category presets.' />
+      <PageHeader title='Gestão de categorias' description='Criar/editar categorias PT/ES e sincronizar com o site.' />
       {error ? <p className='text-sm text-destructive'>{error}</p> : null}
       {statusMessage ? <p className='text-sm text-emerald-700'>{statusMessage}</p> : null}
-      <Card>
-        <CardHeader><CardTitle>Categories</CardTitle></CardHeader>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Categorias</CardTitle></CardHeader>
         <CardContent>
-          <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Thumbnail</TableHead><TableHead>Slug</TableHead><TableHead>PT</TableHead><TableHead>ES</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>{rows.map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.image_url ? <img src={resolveApiFileUrl(row.image_url)} alt={row.name_pt || row.name_es || row.slug || "category"} className='h-10 w-10 rounded-md border object-cover' /> : "-"}</TableCell><TableCell>{row.slug ?? "-"}</TableCell><TableCell>{row.name_pt ?? "-"}</TableCell><TableCell>{row.name_es ?? "-"}</TableCell><TableCell className='flex gap-2'><Button variant='secondary' size='sm' onClick={() => startEdit(row)}>Edit</Button><ConfirmDeleteButton entityName={`category "${row.name_pt || row.name_es || row.slug || row.id}"`} onConfirm={() => adminApi.deleteCategory(row.id).then(load)} /></TableCell></TableRow>)}</TableBody>
+          <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Miniatura</TableHead><TableHead>Slug</TableHead><TableHead>PT</TableHead><TableHead>ES</TableHead><TableHead>Ações</TableHead></TableRow></TableHeader>
+            <TableBody>{rows.map((row) => {
+    const isActive = row.is_active !== false;
+    const isBusy = activeCategoryActionId === row.id;
+    return <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.image_url ? <img src={resolveApiFileUrl(row.image_url)} alt={row.name_pt || row.name_es || row.slug || "categoria"} className='h-10 w-10 rounded-md border object-cover' /> : "-"}</TableCell><TableCell>{row.slug ?? "-"}</TableCell><TableCell>{row.name_pt ?? "-"}</TableCell><TableCell>{row.name_es ?? "-"}</TableCell><TableCell className='flex gap-2'>
+                      <Button size='sm' onClick={() => startEdit(row)}>Editar</Button>
+                      <Button variant='secondary' size='sm' disabled={isBusy} onClick={() => void handleToggleCategoryStatus(row)}>{isBusy ? "A guardar..." : isActive ? "Desativar" : "Ativar"}</Button>
+                      <ConfirmDeleteButton triggerLabel="Apagar" confirmLabel="Apagar" entityName={`categoria "${row.name_pt || row.name_es || row.slug || row.id}"`} onConfirm={() => adminApi.deleteCategory(row.id).then(load)} />
+                    </TableCell></TableRow>;
+  })}</TableBody>
           </Table>
         </CardContent>
       </Card>
-      <Card>
-        <CardHeader><CardTitle>{editingId ? "Update Category" : "Create Category"}</CardTitle></CardHeader>
-        <CardContent className='grid gap-3 md:grid-cols-4'>
-          <Input placeholder='Name PT' value={form.name_pt} onChange={(e) => setForm((p) => ({ ...p, name_pt: e.target.value }))} />
-          <Input placeholder='Name ES' value={form.name_es} onChange={(e) => setForm((p) => ({ ...p, name_es: e.target.value }))} />
-          <Input placeholder='Slug (optional)' value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} />
-          <input
-    type='file'
-    accept='image/*'
-    className='md:col-span-4 text-sm'
-    onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
-  />
-          <p className='md:col-span-4 text-xs text-muted-foreground'>Upload limit: max 5 MB per image.</p>
-          {imagePreview ? <div className='md:col-span-4 flex items-center gap-3'>
-              <img src={resolveApiFileUrl(imagePreview)} alt='Category thumbnail preview' className='h-16 w-16 rounded-md border object-cover' />
-              <p className='text-xs text-muted-foreground'>Category thumbnail preview</p>
-            </div> : null}
-          <div className='flex gap-2 md:col-span-4'>
-            <Button onClick={() => void handleSubmit()}>{editingId ? "Update" : "Save"}</Button>
-            <Button variant='outline' onClick={() => void syncFrontendCategoryPresets()} disabled={isSyncingPresets}>
-              {isSyncingPresets ? "Syncing..." : "Sync Frontend Category Presets"}
-            </Button>
-            {editingId ? <Button variant='secondary' onClick={resetForm}>Cancel</Button> : null}
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle className='text-3xl font-normal'>{editingId ? "Atualizar categoria" : "Criar categoria"}</CardTitle></CardHeader>
+        <CardContent className='grid gap-6 md:grid-cols-3'>
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Nome PT' value={form.name_pt} onChange={(e) => setForm((p) => ({ ...p, name_pt: e.target.value }))} />
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Nome ES' value={form.name_es} onChange={(e) => setForm((p) => ({ ...p, name_es: e.target.value }))} />
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Slug (opcional)' value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} />
+          <input ref={fileInputRef} type='file' accept='image/*' className='hidden' onChange={(e) => setImageFile(e.target.files?.[0] ?? null)} />
+          <Input
+            readOnly
+            className='h-12 cursor-pointer rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0'
+            placeholder='Escolher ficheiro'
+            value={imageFile ? imageFile.name : "Nenhum ficheiro selecionado"}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+          />
+          <Input
+            readOnly
+            className='h-12 rounded-xl border-slate-400/60 text-muted-foreground focus:border-slate-500 focus:ring-0'
+            value='Limite de upload: máx. 5 MB por imagem.'
+          />
+          <Input
+            readOnly
+            className={`h-12 rounded-xl border-slate-400/60 text-muted-foreground focus:border-slate-500 focus:ring-0 ${imagePreview ? "cursor-pointer" : ""}`}
+            value={imagePreview ? "Pré-visualização disponível" : "Sem pré-visualização"}
+            onClick={() => {
+              if (!imagePreview) return;
+              window.open(resolveApiFileUrl(imagePreview), "_blank", "noopener,noreferrer");
+            }}
+          />
+          <div className='flex flex-wrap gap-3 md:col-span-3'>
+            <Button className='!h-14 !w-56 !rounded-xl !bg-black !text-white hover:!bg-black/90' onClick={() => void handleSubmit()}>{editingId ? "Atualizar" : "Guardar"}</Button>
+            {editingId ? <Button variant='secondary' onClick={resetForm}>Cancelar</Button> : null}
           </div>
         </CardContent>
       </Card>

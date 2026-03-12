@@ -492,7 +492,7 @@ const Products = () => {
     }
   };
   return <div className='space-y-6'>
-      <PageHeader title='Product Management' description='CRUD products, variants, prices, promotions and inventory.' />
+      <PageHeader title='Gestão de produtos' description='Criar/editar produtos, variantes, preços, promoções e stock.' />
       {error ? <p className='text-sm text-destructive'>{error}</p> : null}
 
       <Card>

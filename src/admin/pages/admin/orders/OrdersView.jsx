@@ -8,52 +8,52 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 const statusActions = [
-  { value: "processing", label: "packaging" },
-  { value: "shipped", label: "shipped" },
-  { value: "completed", label: "delivered" },
-  { value: "cancelled", label: "cancelled" }
+  { value: "processing", label: "em preparação" },
+  { value: "shipped", label: "enviada" },
+  { value: "completed", label: "entregue" },
+  { value: "cancelled", label: "cancelada" }
 ];
 const statusLabelMap = {
-  pending: "pending",
-  awaiting_payment: "awaiting payment",
-  payment_failed: "payment failed",
-  paid: "paid",
-  processing: "packaging",
-  shipped: "shipped",
-  completed: "delivered",
-  delivered: "delivered",
-  cancelled: "cancelled"
+  pending: "pendente",
+  awaiting_payment: "aguarda pagamento",
+  payment_failed: "pagamento falhou",
+  paid: "pago",
+  processing: "em preparação",
+  shipped: "enviada",
+  completed: "entregue",
+  delivered: "entregue",
+  cancelled: "cancelada"
 };
 const toStatusLabel = (status) => statusLabelMap[status] || status;
 const viewConfig = {
   total: {
-    title: "Total Orders",
-    description: "All orders across stores.",
-    tabLabel: "Total Orders",
+    title: "Encomendas",
+    description: "Todas as encomendas.",
+    tabLabel: "Total encomendas",
     filter: () => true
   },
   packaging: {
-    title: "Packaging Orders",
-    description: "Orders currently in preparation/packaging.",
-    tabLabel: "Packaging",
+    title: "Encomendas",
+    description: "Encomendas atualmente em preparação/embalamento.",
+    tabLabel: "Embalagem",
     filter: (order) => ["pending", "awaiting_payment", "paid", "processing"].includes(order.status)
   },
   shipped: {
-    title: "Shipped Orders",
-    description: "Orders already shipped.",
-    tabLabel: "Shipped",
+    title: "Encomendas",
+    description: "Encomendas já enviadas.",
+    tabLabel: "Enviadas",
     filter: (order) => order.status === "shipped"
   },
   delivered: {
-    title: "Delivered Orders",
-    description: "Orders marked as delivered/completed.",
-    tabLabel: "Delivered",
+    title: "Encomendas",
+    description: "Encomendas marcadas como entregues/concluídas.",
+    tabLabel: "Entregues",
     filter: (order) => ["delivered", "completed"].includes(order.status)
   },
   cancelled: {
-    title: "Cancelled Orders",
-    description: "Orders cancelled by user/admin.",
-    tabLabel: "Cancelled",
+    title: "Encomendas",
+    description: "Encomendas canceladas pelo utilizador/admin.",
+    tabLabel: "Canceladas",
     filter: (order) => order.status === "cancelled"
   }
 };
@@ -83,7 +83,7 @@ function OrdersView({ mode }) {
       setRows(Array.isArray(orders) ? orders : []);
     } catch (e) {
       setRows([]);
-      setError(e instanceof Error ? e.message : "Failed to load orders");
+      setError(e instanceof Error ? e.message : "Falha ao carregar encomendas");
     } finally {
       setLoading(false);
     }
@@ -113,14 +113,25 @@ function OrdersView({ mode }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Order Sections</CardTitle>
+          <CardTitle>Seções de pedidos</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
-          {tabs.map((tab) => <Button key={tab.mode} asChild variant={mode === tab.mode ? "default" : "outline"} size="sm">
+          {tabs.map((tab) => {
+    const isActive = mode === tab.mode;
+    return <Button
+              key={tab.mode}
+              asChild
+              size="sm"
+              className={cn(
+                "!h-10 !rounded-md !px-6",
+                isActive ? "!bg-black !text-white hover:!bg-black/90" : "!bg-zinc-400 !text-white hover:!bg-zinc-500"
+              )}
+            >
               <NavLink to={location.search ? { pathname: tab.to, search: location.search } : tab.to}>
                 {viewConfig[tab.mode].tabLabel}
               </NavLink>
-            </Button>)}
+            </Button>;
+  })}
         </CardContent>
       </Card>
 
@@ -134,22 +145,22 @@ function OrdersView({ mode }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Store</TableHead>
+                <TableHead>Encomenda</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Loja</TableHead>
                 <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? <TableRow>
                   <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
-                    Loading orders...
+                    A carregar encomendas...
                   </TableCell>
                 </TableRow> : filteredRows.length === 0 ? <TableRow>
                   <TableCell colSpan={6} className="text-center text-sm text-muted-foreground">
-                    {searchQuery ? "No orders matched your search." : "No orders in this section."}
+                    {searchQuery ? "Nenhuma encomenda corresponde à pesquisa." : "Sem encomendas nesta secção."}
                   </TableCell>
                 </TableRow> : filteredRows.map((row) => <TableRow key={row.id}>
                     <TableCell>{row.order_number}</TableCell>
@@ -168,10 +179,10 @@ function OrdersView({ mode }) {
     className={cn(row.status === status.value && "border-primary text-primary")}
     onClick={() => void adminApi.updateOrderStatus(row.id, status.value).then(() => load()).then(
       () => setMessage(
-        status.value === "completed" ? "Order completed: invoice generated and sent." : "Order status updated."
+        status.value === "completed" ? "Encomenda concluída: fatura gerada e enviada." : "Estado da encomenda atualizado."
       )
     ).catch(
-      (e) => setError(e instanceof Error ? e.message : "Failed to update order status")
+      (e) => setError(e instanceof Error ? e.message : "Falha ao atualizar o estado da encomenda")
     )}
   >
                             {status.label}

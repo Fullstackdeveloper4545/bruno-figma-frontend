@@ -14,16 +14,16 @@ const Languages = () => {
     setSelected((prev) => prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]);
   };
   return <div className='space-y-6'>
-      <PageHeader title='Language Management' description='PT/ES i18n activation for storefront and admin.' />
+      <PageHeader title='Gestão de idiomas' description='Ativar PT/ES para loja e backoffice.' />
       {message ? <p className='text-sm'>{message}</p> : null}
-      <Card>
-        <CardHeader><CardTitle>Enabled Languages</CardTitle></CardHeader>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Idiomas ativos</CardTitle></CardHeader>
         <CardContent className='space-y-3'>
           {["pt", "es"].map((lang) => <label key={lang} className='flex items-center gap-2 text-sm'>
               <Checkbox checked={selected.includes(lang)} onCheckedChange={() => toggle(lang)} />
               {lang.toUpperCase()}
             </label>)}
-          <Button onClick={() => void adminApi.setLanguages(selected).then(() => setMessage("Language config saved"))}>Save</Button>
+          <Button className='!h-10 !w-28 !justify-center !rounded-md !bg-black !text-white hover:!bg-black/90' onClick={() => void adminApi.setLanguages(selected).then(() => setMessage("Configuração de idiomas guardada"))}>Guardar</Button>
         </CardContent>
       </Card>
     </div>;

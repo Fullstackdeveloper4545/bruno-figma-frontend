@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
@@ -85,11 +85,11 @@ const detectIntegrationProvider = (baseUrl) => {
   return null;
 };
 const buildIntegrationBadgeLabel = (settings) => {
-  if (!settings?.is_active) return "Integration Active";
+  if (!settings?.is_active) return "Integração ativa";
   const explicitName = String(settings.integration_name || "").trim();
-  if (explicitName) return `${explicitName} Integration Active`;
+  if (explicitName) return `${explicitName} ativa`;
   const provider = detectIntegrationProvider(settings.base_url);
-  return provider ? `${provider} Integration Active` : "Integration Active";
+  return provider ? `${provider} ativa` : "Integração ativa";
 };
 const navSections = [
   {
@@ -99,7 +99,7 @@ const navSections = [
   {
     label: "Catálogo",
     items: [
-      { title: "Products", to: "/admin/products", icon: Boxes },
+      { title: "Produtos", to: "/admin/products", icon: Boxes },
       { title: "Categorias", to: "/admin/categories", icon: Tags },
       // { title: "Attributes", to: "/admin/attributes", icon: ListFilter },
     //   { title: "Low Stock", to: "/admin/low-stock", icon: AlertTriangle }
@@ -167,7 +167,7 @@ const AdminLayout = () => {
   const [notificationsLoading, setNotificationsLoading] = useState(true);
   const [notificationsError, setNotificationsError] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [integrationBadgeLabel, setIntegrationBadgeLabel] = useState("Integration Active");
+  const [integrationBadgeLabel, setIntegrationBadgeLabel] = useState("Integração ativa");
   const [modulesState, setModulesState] = useState({});
   const [adminName, setAdminName] = useState("User");
   const orderTrackingRef = useRef({
@@ -212,13 +212,13 @@ const AdminLayout = () => {
         nextStatusById.set(id, status);
         if (!orderTracker.initialized) continue;
         if (!previousIds.has(id)) {
-          const customer = order.customer_name?.trim() || "a customer";
-          pushNotification("new_order", "New Order Received", `${toOrderLabel(order)} was placed by ${customer}.`);
+          const customer = order.customer_name?.trim() || "um cliente";
+          pushNotification("new_order", "Nova encomenda recebida", `${toOrderLabel(order)} foi efetuada por ${customer}.`);
           continue;
         }
         const previousStatus = previousStatusById.get(id);
         if (previousStatus && previousStatus !== "cancelled" && status === "cancelled") {
-          pushNotification("order_cancelled", "Order Cancelled", `${toOrderLabel(order)} has been cancelled.`);
+          pushNotification("order_cancelled", "Encomenda cancelada", `${toOrderLabel(order)} foi cancelada.`);
         }
       }
       const lowStockTracker = lowStockTrackingRef.current;
@@ -236,13 +236,13 @@ const AdminLayout = () => {
           const previousQty = previousStockByKey.get(key);
           const row = currentRowsByKey.get(key);
           const productName = row?.name?.trim() || row?.sku?.trim() || "Product";
-          const storeName = row?.store_name?.trim() || "Unknown Store";
+          const storeName = row?.store_name?.trim() || "Loja desconhecida";
           if (qty === 0 && previousQty !== 0) {
-            pushNotification("out_of_stock", "Product Out Of Stock", `${productName} is out of stock at ${storeName}.`);
+            pushNotification("out_of_stock", "Produto sem stock", `${productName} está sem stock em ${storeName}.`);
             return;
           }
           if (qty > 0 && qty < LOW_STOCK_THRESHOLD && previousQty == null) {
-            pushNotification("low_stock", "Low Stock Alert", `${productName} has only ${qty} units left at ${storeName}.`);
+            pushNotification("low_stock", "Alerta de stock baixo", `${productName} tem apenas ${qty} unidades em ${storeName}.`);
           }
         });
       }
@@ -253,7 +253,7 @@ const AdminLayout = () => {
       lowStockTracker.stockByKey = currentStockByKey;
       setNotificationsError("");
     } catch (error) {
-      setNotificationsError(error instanceof Error ? error.message : "Failed to refresh notifications");
+      setNotificationsError(error instanceof Error ? error.message : "Falha ao atualizar notificações");
     } finally {
       setNotificationsLoading(false);
     }
@@ -321,7 +321,7 @@ const AdminLayout = () => {
       const settings = await adminApi.getIntegrationSettings();
       setIntegrationBadgeLabel(buildIntegrationBadgeLabel(settings));
     } catch {
-      setIntegrationBadgeLabel("Integration Active");
+      setIntegrationBadgeLabel("Integração ativa");
     }
   }, []);
   useEffect(() => {
@@ -391,7 +391,7 @@ const AdminLayout = () => {
             </div>
             <Badge variant="secondary" className="inline-flex w-fit items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary group-data-[collapsible=icon]:hidden">
               <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(16,185,129,0.15)]" />
-              Live
+              Online
             </Badge>
           </div>
         </SidebarHeader>
@@ -445,7 +445,7 @@ const AdminLayout = () => {
                   <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     className="h-9 w-64 rounded-full pl-9"
-                    placeholder="Search orders, SKUs, customers"
+                    placeholder="Procurar encomendas, SKUs, clientes"
                     value={ordersSearchQuery}
                     onChange={(event) => handleOrdersSearchChange(event.target.value)}
                   />
@@ -465,13 +465,13 @@ const AdminLayout = () => {
                     </PopoverTrigger>
                     <PopoverContent className="absolute right-0 top-full z-50 mt-2 w-[360px] p-0">
                       <div className="border-b px-4 py-3">
-                        <p className="text-sm font-semibold">Notifications</p>
+                        <p className="text-sm font-semibold">Notificações</p>
                         <p className="text-xs text-muted-foreground">
-                          {notificationsLoading ? "Loading notifications..." : unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+                          {notificationsLoading ? "A carregar notificações..." : unreadCount > 0 ? `${unreadCount} por ler` : "Tudo em dia"}
                         </p>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
-                        {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-muted-foreground">No notifications yet.</p> : notifications.map((item) => <div
+                        {notifications.length === 0 ? <p className="px-4 py-8 text-center text-sm text-muted-foreground">Ainda sem notificações.</p> : notifications.map((item) => <div
                           key={item.id}
                           className={cn(
                             "border-b px-4 py-3",
@@ -512,7 +512,7 @@ const AdminLayout = () => {
                         className="flex w-full items-center justify-between px-4 py-3 text-sm hover:bg-muted/40"
                         onClick={() => navigate("/admin/settings")}
                       >
-                        Profile & Settings
+                        Perfil e definições
                       </button>
                       <button
                         className="flex w-full items-center justify-between px-4 py-3 text-sm text-destructive hover:bg-muted/40"
@@ -521,7 +521,7 @@ const AdminLayout = () => {
                           navigate("/", { replace: true });
                         }}
                       >
-                        Sign out
+                        Terminar sessão
                       </button>
                     </PopoverContent>
                   </Popover>
@@ -543,3 +543,4 @@ var stdin_default = AdminLayout;
 export {
   stdin_default as default
 };
+

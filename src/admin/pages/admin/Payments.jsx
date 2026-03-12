@@ -27,11 +27,11 @@ const PaymentManagement = () => {
   }, []);
   return <div className='space-y-8'>
       <PageHeader
-    title='Payment Management'
-    description='IfthenPay (MB Way, MB Reference, Credit Card) and Klarna with webhook-driven confirmation.'
+    title='Gestão de pagamentos'
+    description='Gestão de pagamentos e Klarna'
     actions={<Button variant='outline' onClick={() => void load()}>
             <RefreshCw className='mr-2 h-4 w-4' />
-            Refresh
+            Atualizar
           </Button>}
   />
 
@@ -39,19 +39,19 @@ const PaymentManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Payment Logs</CardTitle>
+          <CardTitle>Registos de pagamento</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Method</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Encomenda</TableHead>
+                <TableHead>Fornecedor</TableHead>
+                <TableHead>Método</TableHead>
+                <TableHead>Montante</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Criado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -71,18 +71,18 @@ const PaymentManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Webhook Logs</CardTitle>
+          <CardTitle>Registos de webhook</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Event</TableHead>
-                <TableHead>Processed</TableHead>
-                <TableHead>Error</TableHead>
-                <TableHead>Received</TableHead>
+                <TableHead>Fornecedor</TableHead>
+                <TableHead>Evento</TableHead>
+                <TableHead>Processado</TableHead>
+                <TableHead>Erro</TableHead>
+                <TableHead>Recebido</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -90,7 +90,7 @@ const PaymentManagement = () => {
                   <TableCell>{log.id}</TableCell>
                   <TableCell>{log.provider}</TableCell>
                   <TableCell>{log.event_type}</TableCell>
-                  <TableCell>{log.processed ? "Yes" : "No"}</TableCell>
+                  <TableCell>{log.processed ? "Sim" : "Não"}</TableCell>
                   <TableCell>{log.processing_error || "-"}</TableCell>
                   <TableCell>{new Date(log.received_at).toLocaleString()}</TableCell>
                 </TableRow>)}
@@ -101,7 +101,7 @@ const PaymentManagement = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Webhook Endpoints</CardTitle>
+          <CardTitle>Endpoints de webhook</CardTitle>
         </CardHeader>
         <CardContent className='space-y-2 text-sm text-muted-foreground'>
           <p>`POST /api/payments/webhooks/ifthenpay`</p>

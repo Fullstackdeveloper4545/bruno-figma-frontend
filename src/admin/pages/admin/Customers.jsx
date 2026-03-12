@@ -1,4 +1,3 @@
-import { Ban, KeyRound } from "lucide-react";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
@@ -12,24 +11,24 @@ const customers = [
 const Customers = () => {
   return <div className="space-y-8">
       <PageHeader
-    title="Customer Management"
-    description="Review customer activity, orders, and account controls."
+    title="Gestão de clientes"
+    description="Rever atividade dos clientes, encomendas e controlo de contas."
   />
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
-        <Card className="border-border/60 bg-card/90">
+        <Card className="rounded-[28px] border-border/60 bg-zinc-100">
           <CardHeader>
-            <CardTitle className="font-display text-xl">Customer List</CardTitle>
-            <CardDescription>Active and inactive accounts.</CardDescription>
+            <CardTitle className="font-display text-xl">Lista de clientes</CardTitle>
+            <CardDescription>Contas de cliente, ativas e desativadas</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead>Nome</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Orders</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Encomendas</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -46,36 +45,28 @@ const Customers = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 bg-card/90">
+        <Card className="rounded-[28px] border-border/60 bg-zinc-100">
           <CardHeader>
-            <CardTitle className="font-display text-xl">Customer Profile</CardTitle>
-            <CardDescription>Selected customer summary.</CardDescription>
+            <CardTitle className="font-display text-2xl font-normal">Perfil do Cliente</CardTitle>
+            <CardDescription>Selecione o cliente</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-lg border border-border/60 bg-background/70 p-4">
-              <p className="text-sm font-medium">Maria Silva</p>
-              <p className="text-xs text-muted-foreground">maria@cliente.pt</p>
-              <p className="text-xs text-muted-foreground">Last active: Today</p>
+            <div className="rounded-xl bg-[#6a8f97] p-6 text-white">
+              <p className="text-base font-medium">Maria Silva</p>
+              <p className="text-xs opacity-90">email</p>
+              <p className="mt-2 text-xs opacity-90">Última atividade: hoje</p>
             </div>
             <div className="space-y-2 text-sm">
-              <p>
-                <span className="text-muted-foreground">Orders:</span> 12
-              </p>
-              <p>
-                <span className="text-muted-foreground">Total Spend:</span> EUR 1,420
-              </p>
-              <p>
-                <span className="text-muted-foreground">Last Order:</span> ORD-1024
-              </p>
+              <p className="font-medium">Encomendas: 12</p>
+              <p className="font-medium">Total gasto: 1 420€</p>
+              <p className="font-medium">Última encomenda: ORD-1024</p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline">
-                <KeyRound className="mr-2 h-4 w-4" />
-                Reset Password
+            <div className="flex flex-wrap gap-4">
+              <Button size="sm" className="!h-12 !w-48 !rounded-xl !bg-black !text-white hover:!bg-black/90">
+                Redefinir Password
               </Button>
-              <Button size="sm" variant="destructive">
-                <Ban className="mr-2 h-4 w-4" />
-                Disable Account
+              <Button size="sm" className="!h-12 !w-48 !rounded-xl !bg-destructive !text-destructive-foreground hover:!bg-destructive/90">
+                Desativar Conta
               </Button>
             </div>
           </CardContent>

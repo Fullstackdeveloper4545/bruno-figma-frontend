@@ -13,17 +13,24 @@ const Invoices = () => {
     void load();
   }, []);
   return <div className='space-y-6'>
-      <PageHeader title='Invoices' description='Download/resend/sync invoice PDFs.' />
+      <PageHeader title='Faturas' description='Faça download, reenvie ou sincronize faturas.' />
       {message ? <p className='text-sm'>{message}</p> : null}
 
-      <Card>
-        <CardHeader><CardTitle>Invoice List</CardTitle></CardHeader>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader className='flex flex-row items-center justify-between gap-4'>
+          <CardTitle className='text-3xl font-normal'>Lista de Faturas</CardTitle>
+          <Button
+            className='!h-10 !rounded-md !bg-black !px-6 !text-white hover:!bg-black/90'
+            onClick={() => void adminApi.syncInvoices().then(() => load()).then(() => setMessage("Faturas não sincronizadas enviadas para a API"))}
+          >
+            Conectar Faturas Pendentes
+          </Button>
+        </CardHeader>
         <CardContent>
-          <div className='mb-3'>
-            <Button variant='outline' onClick={() => void adminApi.syncInvoices().then(() => load()).then(() => setMessage("Unsynced invoices pushed to stock API"))}>Sync Pending Invoices</Button>
-          </div>
-          <Table><TableHeader><TableRow><TableHead>Invoice</TableHead><TableHead>Order</TableHead><TableHead>Synced</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>{rows.map((row) => <TableRow key={row.id}><TableCell>{row.invoice_number}</TableCell><TableCell>{row.order_number}</TableCell><TableCell>{row.synced ? "Yes" : "No"}</TableCell><TableCell><div className='flex gap-2'><a className='inline-flex h-8 items-center rounded-md border px-3 text-sm' href={`${API_BASE_URL}/api/invoices/${row.id}/pdf`} target='_blank' rel='noreferrer'>View PDF</a><Button variant='outline' size='sm' onClick={() => void adminApi.resendInvoice(row.id).then(() => setMessage("Invoice emailed"))}>Resend Email</Button></div></TableCell></TableRow>)}</TableBody>
+          <Table><TableHeader><TableRow><TableHead>Fatura</TableHead><TableHead>Encomenda</TableHead><TableHead>Sincronizada</TableHead><TableHead>Ações</TableHead></TableRow></TableHeader>
+            <TableBody>{rows.map((row) => <TableRow key={row.id}><TableCell>{row.invoice_number}</TableCell><TableCell>{row.order_number}</TableCell><TableCell>{row.synced ? "Sim" : "Não"}</TableCell><TableCell><div className='flex gap-2'>
+                    <a className='inline-flex h-9 items-center rounded-md border border-slate-400/60 bg-white px-4 text-sm' href={`${API_BASE_URL}/api/invoices/${row.id}/pdf`} target='_blank' rel='noreferrer'>Ver PDF</a>
+                  </div></TableCell></TableRow>)}</TableBody>
           </Table>
         </CardContent>
       </Card>

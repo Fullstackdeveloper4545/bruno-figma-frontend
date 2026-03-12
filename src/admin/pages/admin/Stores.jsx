@@ -56,7 +56,7 @@ const Stores = () => {
       const mode = routingResult?.mode === "quantity" ? "quantity" : "region";
       setRoutingMode(mode);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load stores");
+      setError(e instanceof Error ? e.message : "Falha ao carregar lojas");
       setRows([]);
     } finally {
       setLoading(false);
@@ -76,22 +76,22 @@ const Stores = () => {
     const priorityLevel = Number(form.priority_level);
     const regions = parseRegions(form.regions);
     if (!name) {
-      setError("Store name is required.");
+      setError("O nome da loja é obrigatório.");
       setSuccess("");
       return;
     }
     if (!regionDistrict) {
-      setError("Region/District is required.");
+      setError("A região/distrito é obrigatória.");
       setSuccess("");
       return;
     }
     if (!Number.isInteger(priorityLevel) || priorityLevel < 1) {
-      setError("Priority must be an integer greater than 0.");
+      setError("A prioridade deve ser um número inteiro maior que 0.");
       setSuccess("");
       return;
     }
     if (!address) {
-      setError("Address is required.");
+      setError("A morada é obrigatória.");
       setSuccess("");
       return;
     }
@@ -109,15 +109,15 @@ const Stores = () => {
       setSuccess("");
       if (editingId != null) {
         await adminApi.updateStore(editingId, payload);
-        setSuccess("Store updated.");
+        setSuccess("Loja atualizada.");
       } else {
         await adminApi.createStore(payload);
-        setSuccess("Store created.");
+        setSuccess("Loja criada.");
       }
       resetForm();
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to save store");
+      setError(e instanceof Error ? e.message : "Falha ao guardar a loja");
       setSuccess("");
     } finally {
       setSavingStore(false);
@@ -128,19 +128,19 @@ const Stores = () => {
       setError("");
       setSuccess("");
       await adminApi.deleteStore(storeId);
-      setSuccess("Store deleted.");
+      setSuccess("Loja eliminada.");
       if (editingId === storeId) {
         resetForm();
       }
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to delete store");
+      setError(e instanceof Error ? e.message : "Falha ao eliminar a loja");
       setSuccess("");
     }
   };
   const handleToggleStoreStatus = async (store) => {
     if (store.is_active !== false && activeStoreCount <= 1) {
-      setError("At least one active store is required.");
+      setError("É necessário pelo menos uma loja ativa.");
       setSuccess("");
       return;
     }
@@ -149,10 +149,10 @@ const Stores = () => {
       setError("");
       setSuccess("");
       await adminApi.updateStore(store.id, { is_active: store.is_active === false });
-      setSuccess(`Store ${store.is_active === false ? "activated" : "deactivated"}.`);
+      setSuccess(`Loja ${store.is_active === false ? "ativada" : "desativada"}.`);
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update store status");
+      setError(e instanceof Error ? e.message : "Falha ao atualizar o estado da loja");
       setSuccess("");
     } finally {
       setActiveStoreActionId(null);
@@ -164,9 +164,9 @@ const Stores = () => {
       setError("");
       setSuccess("");
       await adminApi.setRoutingMode(routingMode);
-      setSuccess(`Routing mode updated to ${routingMode}.`);
+      setSuccess(`Modo de roteamento atualizado para ${routingMode === "quantity" ? "quantidade" : "região"}.`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to update routing mode");
+      setError(e instanceof Error ? e.message : "Falha ao atualizar o modo de roteamento");
       setSuccess("");
     } finally {
       setSavingRoutingMode(false);
@@ -174,73 +174,73 @@ const Stores = () => {
   };
   return <div className="space-y-6">
       <PageHeader
-    title="Store Management"
-    description="Manage stores, priority, addresses, and mapped regions."
+    title="Gestão de lojas"
+    description="Gerir lojas, prioridade, moradas e regiões mapeadas."
   />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {success ? <p className="text-sm text-success">{success}</p> : null}
 
-      <Card>
+      <Card className="rounded-2xl bg-zinc-100">
         <CardHeader>
-          <CardTitle>Order Routing Mode</CardTitle>
+          <CardTitle>Modo de roteamento de encomendas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Choose how new orders are assigned: by customer region mapping or by highest available stock quantity.
+            Escolha como as novas encomendas são atribuídas: por mapeamento de região do cliente ou por maior quantidade de stock disponível.
           </p>
           <div className="flex flex-wrap gap-2">
             <Button
     type="button"
-    variant={routingMode === "region" ? "default" : "outline"}
+    className={routingMode === "region" ? "!h-10 !rounded-md !bg-black !px-4 !text-white hover:!bg-black/90" : "!h-10 !rounded-md !bg-white !px-4 !text-black border border-slate-400/60 hover:!bg-zinc-100"}
     onClick={() => setRoutingMode("region")}
   >
-              Region Priority
+              Prioridade de Região
             </Button>
             <Button
     type="button"
-    variant={routingMode === "quantity" ? "default" : "outline"}
+    className={routingMode === "quantity" ? "!h-10 !rounded-md !bg-black !px-4 !text-white hover:!bg-black/90" : "!h-10 !rounded-md !bg-white !px-4 !text-black border border-slate-400/60 hover:!bg-zinc-100"}
     onClick={() => setRoutingMode("quantity")}
   >
-              Quantity Priority
+              Prioridade de Quantidade
             </Button>
             <Button
     type="button"
-    variant="secondary"
+    className="!h-10 !rounded-md !bg-white !px-6 !text-[#6a8f97] border border-[#6a8f97] hover:!bg-[#6a8f97]/10"
     disabled={savingRoutingMode}
     onClick={() => void handleSaveRoutingMode()}
   >
-              {savingRoutingMode ? "Saving..." : "Save Routing Mode"}
+              {savingRoutingMode ? "A guardar..." : "Guardar Modo"}
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-2xl bg-zinc-100">
         <CardHeader>
-          <CardTitle>Stores</CardTitle>
+          <CardTitle>Lojas</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>District</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Address</TableHead>
-                <TableHead>Regions</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Distrito</TableHead>
+                <TableHead>Prioridade</TableHead>
+                <TableHead>Morada</TableHead>
+                <TableHead>Regiões</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? <TableRow>
                   <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
-                    Loading stores...
+                    A carregar lojas...
                   </TableCell>
                 </TableRow> : rows.length === 0 ? <TableRow>
                   <TableCell colSpan={8} className="text-center text-sm text-muted-foreground">
-                    No stores configured yet.
+                    Ainda não existem lojas configuradas.
                   </TableCell>
                 </TableRow> : rows.map((row) => {
     const isActive = row.is_active !== false;
@@ -249,15 +249,15 @@ const Stores = () => {
     return <TableRow key={String(row.id)}>
                       <TableCell>{row.id}</TableCell>
                       <TableCell>{row.name}</TableCell>
-                      <TableCell>{isActive ? "Active" : "Inactive"}</TableCell>
+                      <TableCell>{isActive ? "Ativa" : "Inativa"}</TableCell>
                       <TableCell>{row.region_district || "-"}</TableCell>
                       <TableCell>{row.priority_level ?? "-"}</TableCell>
                       <TableCell>{row.address || "-"}</TableCell>
                       <TableCell>{(row.regions || []).join(", ") || "-"}</TableCell>
                       <TableCell className="flex gap-2">
                         <Button
-      variant="secondary"
       size="sm"
+      className="!h-9 !rounded-md !bg-[#6a8f97] !px-5 !text-white hover:!bg-[#5e838b]"
       onClick={() => {
         setEditingId(row.id);
         setForm(toForm(row));
@@ -265,18 +265,20 @@ const Stores = () => {
         setError("");
       }}
     >
-                          Edit
+                          Editar
                         </Button>
                         <Button
-      variant="outline"
       size="sm"
+      className="!h-9 !rounded-md !bg-zinc-500 !px-5 !text-white hover:!bg-zinc-600"
       disabled={isBusy || isLastActive}
       onClick={() => void handleToggleStoreStatus(row)}
     >
-                          {isBusy ? "Saving..." : isActive ? "Deactivate" : "Activate"}
+                          {isBusy ? "A guardar..." : isActive ? "Desativar" : "Ativar"}
                         </Button>
                         <ConfirmDeleteButton
-      entityName={`store "${row.name}"`}
+      triggerLabel="Apagar"
+      confirmLabel="Apagar"
+      entityName={`loja "${row.name}"`}
       onConfirm={() => handleDeleteStore(row.id)}
       disabled={!canDeleteStores}
     />
@@ -286,57 +288,62 @@ const Stores = () => {
             </TableBody>
           </Table>
           {!canDeleteStores ? <p className="mt-3 text-xs text-muted-foreground">
-              At least one store must remain configured.
+              Pelo menos uma loja deve permanecer configurada.
             </p> : null}
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="rounded-[28px] bg-zinc-100">
         <CardHeader>
-          <CardTitle>{editingId != null ? "Edit Store" : "Create Store"}</CardTitle>
+          <CardTitle className="text-3xl font-normal">{editingId != null ? "Editar Loja" : "Criar Loja"}</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-3">
+        <CardContent className="grid gap-6 md:grid-cols-3">
           <Input
-    placeholder="Store name"
+    className="h-12 rounded-xl border-slate-400/60 focus:ring-0 focus:border-slate-500"
+    placeholder="Nome da Loja"
     value={form.name}
     onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
   />
           <Input
-    placeholder="Region/District"
+    className="h-12 rounded-xl border-slate-400/60 focus:ring-0 focus:border-slate-500"
+    placeholder="Região/Distrito"
     value={form.region_district}
     onChange={(e) => setForm((prev) => ({ ...prev, region_district: e.target.value }))}
   />
           <Input
-    placeholder="Priority"
+    className="h-12 rounded-xl border-slate-400/60 focus:ring-0 focus:border-slate-500"
+    placeholder="1"
     type="number"
     min={1}
     value={form.priority_level}
     onChange={(e) => setForm((prev) => ({ ...prev, priority_level: e.target.value }))}
   />
           <Input
-    placeholder="Address"
+    className="h-12 rounded-xl border-slate-400/60 focus:ring-0 focus:border-slate-500"
+    placeholder="Morada"
     value={form.address}
     onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
   />
           <Input
-    placeholder="Mapped regions (comma separated)"
+    className="h-12 rounded-xl border-slate-400/60 focus:ring-0 focus:border-slate-500"
+    placeholder="Regiões mapeadas (separar com vírgulas)"
     value={form.regions}
     onChange={(e) => setForm((prev) => ({ ...prev, regions: e.target.value }))}
   />
-          <label className="flex h-10 items-center gap-2 rounded-md border px-3 text-sm">
+          <label className="flex h-12 items-center gap-3 rounded-xl border border-slate-400/60 bg-white px-4 text-sm">
             <input
     type="checkbox"
     checked={form.is_active}
     onChange={(e) => setForm((prev) => ({ ...prev, is_active: e.target.checked }))}
   />
-            Active
+            Ativar
           </label>
           <div className="flex gap-2 md:col-span-3">
-            <Button disabled={savingStore} onClick={() => void handleSaveStore()}>
-              {savingStore ? "Saving..." : editingId != null ? "Update Store" : "Create Store"}
+            <Button className="!h-14 !w-56 !rounded-xl !bg-black !text-white hover:!bg-black/90" disabled={savingStore} onClick={() => void handleSaveStore()}>
+              {savingStore ? "A guardar..." : editingId != null ? "Guardar alterações" : "Criar Loja"}
             </Button>
             {editingId != null ? <Button variant="secondary" onClick={resetForm}>
-                Cancel Edit
+                Cancelar
               </Button> : null}
           </div>
         </CardContent>

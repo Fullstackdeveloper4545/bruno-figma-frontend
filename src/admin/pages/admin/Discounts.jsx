@@ -302,215 +302,215 @@ const Discounts = ({ mode = "coupons" }) => {
   const isCouponsMode = mode === "coupons";
   const isProductDiscountMode = mode === "product-discounts";
   return <div className='space-y-6'>
-      <PageHeader
-    title={isCouponsMode ? "Coupons" : "Product Discounts"}
-    description={isCouponsMode ? "Create and manage coupons for all products, specific products, or categories." : "Apply or remove direct product-level discounts."}
-    actions={<Button variant='outline' onClick={() => void load()}>
-            <RefreshCw className='mr-2 h-4 w-4' />
-            Refresh
-          </Button>}
-  />
-      {error ? <p className='text-sm text-destructive'>{error}</p> : null}
+    <PageHeader
+      title={isCouponsMode ? "Cupões" : "Descontos de Produto"}
+      description={isCouponsMode ? "Crie e faça a festão dos seus cupões e descontos para todos os produtos, categorias ou produto específico." : "Apply or remove direct product-level discounts."}
+      actions={<Button className='!h-10 !rounded-md !bg-zinc-400 !px-6 !text-white hover:!bg-zinc-500' onClick={() => void load()}>
+        <RefreshCw className='mr-2 h-4 w-4' />
+        Atualizar
+      </Button>}
+    />
+    {error ? <p className='text-sm text-destructive'>{error}</p> : null}
 
-      <Card>
-        <CardHeader><CardTitle>Discount Sections</CardTitle></CardHeader>
-        <CardContent className='flex flex-wrap gap-2'>
-          <Button asChild variant={isCouponsMode ? "default" : "outline"} size='sm'>
-            <NavLink to='/admin/discounts/coupons'>Coupons</NavLink>
-          </Button>
-          <Button asChild variant={isProductDiscountMode ? "default" : "outline"} size='sm'>
-            <NavLink to='/admin/discounts/product-discounts'>Product Discounts</NavLink>
-          </Button>
-        </CardContent>
-      </Card>
+    <Card className='rounded-[28px] bg-zinc-100'>
+      <CardHeader><CardTitle>Secções de Desconto</CardTitle></CardHeader>
+      <CardContent className='flex flex-wrap gap-2'>
+        <Button asChild size='sm' className={`!h-10 !rounded-md !px-6 ${isCouponsMode ? "!bg-black !text-white hover:!bg-black/90" : "!bg-zinc-400 !text-white hover:!bg-zinc-500"}`}>
+          <NavLink to='/admin/discounts/coupons'>Cupões</NavLink>
+        </Button>
+        <Button asChild size='sm' className={`!h-10 !rounded-md !px-6 ${isProductDiscountMode ? "!bg-black !text-white hover:!bg-black/90" : "!bg-zinc-400 !text-white hover:!bg-zinc-500"}`}>
+          <NavLink to='/admin/discounts/product-discounts'>Descontos de Produto</NavLink>
+        </Button>
+      </CardContent>
+    </Card>
 
-      {isCouponsMode ? <>
-      <Card>
-        <CardHeader><CardTitle>Coupons</CardTitle></CardHeader>
+    {isCouponsMode ? <>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Cupões</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Restriction</TableHead>
-                <TableHead>Limit</TableHead>
-                <TableHead>Used</TableHead>
-                <TableHead>Expires</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Código</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Restrição</TableHead>
+                <TableHead>Limite</TableHead>
+                <TableHead>Usado</TableHead>
+                <TableHead>Expira</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? <TableRow>
-                  <TableCell colSpan={9} className='text-center text-sm text-muted-foreground'>
-                    No coupons yet
-                  </TableCell>
-                </TableRow> : rows.map((row) => <TableRow key={row.id}>
-                    <TableCell className='font-medium'>{row.code}</TableCell>
-                    <TableCell>{row.type}</TableCell>
-                    <TableCell>
-                      {row.type === "percentage" ? `${Number(row.value)}%` : `EUR ${Number(row.value).toFixed(2)}`}
-                    </TableCell>
-                    <TableCell>{resolveRestriction(row)}</TableCell>
-                    <TableCell>{row.usage_limit ?? "-"}</TableCell>
-                    <TableCell>{row.usage_count ?? 0}</TableCell>
-                    <TableCell>{row.expiration ? new Date(row.expiration).toLocaleDateString() : "-"}</TableCell>
-                    <TableCell>{row.is_active ? "Active" : "Inactive"}</TableCell>
-                    <TableCell className='flex gap-2'>
-                      <Button variant='secondary' size='sm' onClick={() => startEdit(row)}>
-                        Edit
-                      </Button>
-                      <ConfirmDeleteButton entityName={`coupon "${row.code}"`} onConfirm={() => handleDelete(row.id)} />
-                    </TableCell>
-                  </TableRow>)}
+                <TableCell colSpan={9} className='text-center text-sm text-muted-foreground'>
+                  Ainda não há cupons
+                </TableCell>
+              </TableRow> : rows.map((row) => <TableRow key={row.id}>
+                <TableCell className='font-medium'>{row.code}</TableCell>
+                <TableCell>{row.type}</TableCell>
+                <TableCell>
+                  {row.type === "percentage" ? `${Number(row.value)}%` : `EUR ${Number(row.value).toFixed(2)}`}
+                </TableCell>
+                <TableCell>{resolveRestriction(row)}</TableCell>
+                <TableCell>{row.usage_limit ?? "-"}</TableCell>
+                <TableCell>{row.usage_count ?? 0}</TableCell>
+                <TableCell>{row.expiration ? new Date(row.expiration).toLocaleDateString() : "-"}</TableCell>
+                <TableCell>{row.is_active ? "Ativo" : "Inativo"}</TableCell>
+                <TableCell className='flex gap-2'>
+                  <Button size='sm' onClick={() => startEdit(row)}>
+                    Editar
+                  </Button>
+                  <ConfirmDeleteButton triggerLabel="Apagar" confirmLabel="Apagar" entityName={`cupão "${row.code}"`} onConfirm={() => handleDelete(row.id)} />
+                </TableCell>
+              </TableRow>)}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader><CardTitle>{editingId ? "Update Coupon" : "Create Coupon"}</CardTitle></CardHeader>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>{editingId ? "Atualizar cupão" : "Criar cupão"}</CardTitle></CardHeader>
         <CardContent className='grid gap-3 md:grid-cols-4'>
-          <Input placeholder='Code' value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} />
-          <select className='rounded-md border bg-background px-3 py-2 text-sm' value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
-            <option value='percentage'>percentage</option>
-            <option value='fixed'>fixed</option>
+          <Input placeholder='Código' value={form.code} onChange={(e) => setForm((p) => ({ ...p, code: e.target.value }))} />
+          <select className='w-full rounded-md border bg-background px-3 py-2 text-sm' value={form.type} onChange={(e) => setForm((p) => ({ ...p, type: e.target.value }))}>
+            <option value='percentage'>percentagem</option>
+            <option value='fixed'>fixo</option>
           </select>
-          <Input placeholder='Value' type='number' value={form.value} onChange={(e) => setForm((p) => ({ ...p, value: e.target.value }))} />
-          <Input type='date' value={form.expiration} onChange={(e) => setForm((p) => ({ ...p, expiration: e.target.value }))} />
-          <Input placeholder='Usage limit' type='number' value={form.usage_limit} onChange={(e) => setForm((p) => ({ ...p, usage_limit: e.target.value }))} />
+          <Input placeholder='Valor' type='number' value={form.value} onChange={(e) => setForm((p) => ({ ...p, value: e.target.value }))} />
+          <Input placeholder='Expiração' type='date' value={form.expiration} onChange={(e) => setForm((p) => ({ ...p, expiration: e.target.value }))} />
+          <Input placeholder='Limite de uso' type='number' value={form.usage_limit} onChange={(e) => setForm((p) => ({ ...p, usage_limit: e.target.value }))} />
           <select
-    className='rounded-md border bg-background px-3 py-2 text-sm'
-    value={form.restriction_type}
-    onChange={(e) => setForm((p) => ({ ...p, restriction_type: e.target.value, restriction_id: "" }))}
-  >
-            <option value='global'>All products</option>
-            <option value='product'>Specific product</option>
-            <option value='category'>Specific category</option>
+            className='w-full rounded-md border bg-background px-3 py-2 text-sm'
+            value={form.restriction_type}
+            onChange={(e) => setForm((p) => ({ ...p, restriction_type: e.target.value, restriction_id: "" }))}
+          >
+            <option value='global'>Todos os produtos</option>
+            <option value='product'>Produto específico</option>
+            <option value='category'>Categoria específica</option>
           </select>
-          {form.restriction_type === "global" ? <div className='rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground'>Coupon will apply to all products</div> : <select
-    className='rounded-md border bg-background px-3 py-2 text-sm'
-    value={form.restriction_id}
-    onChange={(e) => setForm((p) => ({ ...p, restriction_id: e.target.value }))}
-  >
-              <option value=''>
-                {form.restriction_type === "product" ? "Select product" : "Select category"}
-              </option>
-              {form.restriction_type === "product" ? products.map((item) => <option key={String(item.id)} value={String(item.id)}>
-                      {item.name_pt || item.name_es || item.sku || String(item.id)}
-                    </option>) : categories.map((item) => <option key={String(item.id)} value={String(item.id)}>
-                      {item.name_pt || item.name_es || item.slug || String(item.id)}
-                    </option>)}
-            </select>}
-          <label className='flex items-center gap-2 rounded-md border px-3 py-2 text-sm'>
+          {form.restriction_type === "global" ? <div className='w-full rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground'>O cupão será aplicado a todos os produtos</div> : <select
+            className='w-full rounded-md border bg-background px-3 py-2 text-sm'
+            value={form.restriction_id}
+            onChange={(e) => setForm((p) => ({ ...p, restriction_id: e.target.value }))}
+          >
+            <option value=''>
+              {form.restriction_type === "product" ? "Select product" : "Select category"}
+            </option>
+            {form.restriction_type === "product" ? products.map((item) => <option key={String(item.id)} value={String(item.id)}>
+              {item.name_pt || item.name_es || item.sku || String(item.id)}
+            </option>) : categories.map((item) => <option key={String(item.id)} value={String(item.id)}>
+              {item.name_pt || item.name_es || item.slug || String(item.id)}
+            </option>)}
+          </select>}
+          <label className='flex w-full items-center gap-2 rounded-md border px-3 py-2 text-sm'>
             <input
-    type='checkbox'
-    checked={form.is_active}
-    onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
-  />
-            Active
+              type='checkbox'
+              checked={form.is_active}
+              onChange={(e) => setForm((p) => ({ ...p, is_active: e.target.checked }))}
+            />
+            Ativo
           </label>
           <div className='flex gap-2 md:col-span-4'>
-            <Button disabled={isSaving} onClick={() => void handleSubmit()}>
-              {isSaving ? "Saving..." : editingId ? "Update" : "Save"}
+            <Button className='!h-14 !w-56 !rounded-xl !bg-black !text-white hover:!bg-black/90' disabled={isSaving} onClick={() => void handleSubmit()}>
+              {isSaving ? "A guardar..." : editingId ? "Atualizar" : "Guardar"}
             </Button>
             {editingId ? <Button variant='secondary' onClick={resetForm}>
-                Cancel
-              </Button> : null}
+              Cancelar
+            </Button> : null}
           </div>
         </CardContent>
       </Card>
-      </> : null}
+    </> : null}
 
-      {isProductDiscountMode ? <>
-      <Card>
-        <CardHeader><CardTitle>Product Discounts</CardTitle></CardHeader>
+    {isProductDiscountMode ? <>
+      <Card className='rounded-[28px] bg-zinc-100'>
+        <CardHeader><CardTitle>Descontos em produtos</CardTitle></CardHeader>
         <CardContent className='grid gap-3 md:grid-cols-4'>
           <select
-    className='rounded-md border bg-background px-3 py-2 text-sm md:col-span-2'
-    value={selectedDiscountProductId}
-    onChange={(e) => setSelectedDiscountProductId(e.target.value)}
-  >
-            <option value=''>Select product</option>
+            className='rounded-md border bg-background px-3 py-2 text-sm md:col-span-2'
+            value={selectedDiscountProductId}
+            onChange={(e) => setSelectedDiscountProductId(e.target.value)}
+          >
+            <option value=''>Selecione o produto</option>
             {products.map((item) => <option key={String(item.id)} value={String(item.id)}>
-                {item.name_pt || item.name_es || item.sku || String(item.id)}
-              </option>)}
+              {item.name_pt || item.name_es || item.sku || String(item.id)}
+            </option>)}
           </select>
           <Input
-    placeholder='Discount % (0-99)'
-    type='number'
-    min={0}
-    max={99}
-    value={discountPercent}
-    onChange={(e) => setDiscountPercent(e.target.value)}
-  />
-          <Button disabled={isApplyingProductDiscount} onClick={() => void handleApplyProductDiscount()}>
-            {isApplyingProductDiscount ? "Applying..." : "Apply to Product"}
+            placeholder='Desconto % (0-99)'
+            type='number'
+            min={0}
+            max={99}
+            value={discountPercent}
+            onChange={(e) => setDiscountPercent(e.target.value)}
+          />
+          <Button className='!h-10 !rounded-md !bg-black !px-6 !text-white hover:!bg-black/90' disabled={isApplyingProductDiscount} onClick={() => void handleApplyProductDiscount()}>
+            {isApplyingProductDiscount ? "A aplicar..." : "Aplicar ao produto"}
           </Button>
           <p className='text-xs text-muted-foreground md:col-span-4'>
-            This updates all variants of the selected product. Use 0% to remove discount.
+            Esta opção atualiza todas as variantes do produto selecionado. Use 0% para remover o desconto.
           </p>
           {productDiscountMessage ? <p className='text-xs text-success md:col-span-4'>{productDiscountMessage}</p> : null}
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle>Applied Product Discounts</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Descontos aplicados aos produtos</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>Variants</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead>Current Price</TableHead>
-                <TableHead>Original Price</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Produto</TableHead>
+                <TableHead>Variantes</TableHead>
+                <TableHead>Desconto</TableHead>
+                <TableHead>Preço atual</TableHead>
+                <TableHead>Preço original</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {productDiscountRows.length === 0 ? <TableRow>
-                  <TableCell colSpan={6} className='text-center text-sm text-muted-foreground'>
-                    No product discounts applied yet.
-                  </TableCell>
-                </TableRow> : productDiscountRows.map((row) => <TableRow key={row.id}>
-                    <TableCell className='font-medium'>{row.name}</TableCell>
-                    <TableCell>{row.discountedVariants}/{row.totalVariants}</TableCell>
-                    <TableCell>
-                      {row.minDiscount === row.maxDiscount ? `${row.maxDiscount}%` : `${row.minDiscount}% - ${row.maxDiscount}%`}
-                    </TableCell>
-                    <TableCell>
-                      {row.minCurrent === row.maxCurrent ? formatMoney(row.minCurrent, row.currency) : `${formatMoney(row.minCurrent, row.currency)} - ${formatMoney(row.maxCurrent, row.currency)}`}
-                    </TableCell>
-                    <TableCell>
-                      {row.minOriginal === row.maxOriginal ? formatMoney(row.minOriginal, row.currency) : `${formatMoney(row.minOriginal, row.currency)} - ${formatMoney(row.maxOriginal, row.currency)}`}
-                    </TableCell>
-                    <TableCell className='flex gap-2'>
-                      <Button
-    variant='secondary'
-    size='sm'
-    disabled={isApplyingProductDiscount || activeDiscountActionProductId === row.id}
-    onClick={() => handleEditProductDiscount(row)}
-  >
-                        Edit
-                      </Button>
-                      <ConfirmDeleteButton
-    entityName={`discount on "${row.name}"`}
-    triggerLabel={activeDiscountActionProductId === row.id ? "Removing..." : "Delete"}
-    confirmLabel='Remove'
-    disabled={isApplyingProductDiscount || activeDiscountActionProductId === row.id}
-    onConfirm={() => handleDeleteProductDiscount(row.id)}
-  />
-                    </TableCell>
-                  </TableRow>)}
+                <TableCell colSpan={6} className='text-center text-sm text-muted-foreground'>
+Nenhum desconto foi aplicado ainda.
+                </TableCell>
+              </TableRow> : productDiscountRows.map((row) => <TableRow key={row.id}>
+                <TableCell className='font-medium'>{row.name}</TableCell>
+                <TableCell>{row.discountedVariants}/{row.totalVariants}</TableCell>
+                <TableCell>
+                  {row.minDiscount === row.maxDiscount ? `${row.maxDiscount}%` : `${row.minDiscount}% - ${row.maxDiscount}%`}
+                </TableCell>
+                <TableCell>
+                  {row.minCurrent === row.maxCurrent ? formatMoney(row.minCurrent, row.currency) : `${formatMoney(row.minCurrent, row.currency)} - ${formatMoney(row.maxCurrent, row.currency)}`}
+                </TableCell>
+                <TableCell>
+                  {row.minOriginal === row.maxOriginal ? formatMoney(row.minOriginal, row.currency) : `${formatMoney(row.minOriginal, row.currency)} - ${formatMoney(row.maxOriginal, row.currency)}`}
+                </TableCell>
+                <TableCell className='flex gap-2'>
+                  <Button
+                    variant='secondary'
+                    size='sm'
+                    disabled={isApplyingProductDiscount || activeDiscountActionProductId === row.id}
+                    onClick={() => handleEditProductDiscount(row)}
+                  >
+                    Edit
+                  </Button>
+                  <ConfirmDeleteButton
+                    entityName={`discount on "${row.name}"`}
+                    triggerLabel={activeDiscountActionProductId === row.id ? "Removing..." : "Delete"}
+                    confirmLabel='Remove'
+                    disabled={isApplyingProductDiscount || activeDiscountActionProductId === row.id}
+                    onConfirm={() => handleDeleteProductDiscount(row.id)}
+                  />
+                </TableCell>
+              </TableRow>)}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-      </> : null}
-    </div>;
+    </> : null}
+  </div>;
 };
 var stdin_default = Discounts;
 export {

@@ -35,7 +35,7 @@ const Blogs = () => {
       const result = await adminApi.listBlogPosts();
       setRows(Array.isArray(result) ? result : []);
     } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Failed to load blog posts");
+      setError(loadError instanceof Error ? loadError.message : "Falha ao carregar posts do blog");
     }
   };
   useEffect(() => {
@@ -64,7 +64,7 @@ const Blogs = () => {
   };
   const onSubmit = async () => {
     if (!form.title_pt.trim() && !form.title_es.trim()) {
-      setError("Please provide at least title_pt or title_es.");
+      setError("Indique pelo menos um título (PT ou ES).");
       return;
     }
     try {
@@ -95,7 +95,7 @@ const Blogs = () => {
       resetForm();
       await load();
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Failed to save blog post");
+      setError(submitError instanceof Error ? submitError.message : "Falha ao guardar o post do blog");
     } finally {
       setSubmitting(false);
     }
@@ -109,52 +109,54 @@ const Blogs = () => {
       }
       await load();
     } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete blog post");
+      setError(deleteError instanceof Error ? deleteError.message : "Falha ao eliminar o post do blog");
     }
   };
   return <div className="space-y-6">
       <PageHeader
-    title="Blog Management"
-    description="Create, update, publish, and delete blog posts."
+    title="Gestão do blog"
+    description="Criar, atualizar, publicar e eliminar posts do blog."
   />
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
 
       <Card>
         <CardHeader>
-          <CardTitle>Blog Posts</CardTitle>
+          <CardTitle>Posts do blog</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
+                <TableHead>Título</TableHead>
                 <TableHead>Slug</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Published At</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Estado</TableHead>
+                <TableHead>Publicado em</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? <TableRow>
-                  <TableCell colSpan={5}>No blog posts found.</TableCell>
+                  <TableCell colSpan={5}>Não existem posts do blog.</TableCell>
                 </TableRow> : rows.map((row) => <TableRow key={row.id}>
                     <TableCell>{row.title_pt || row.title_es || "-"}</TableCell>
                     <TableCell>{row.slug}</TableCell>
-                    <TableCell>{row.is_published ? "Published" : "Draft"}</TableCell>
+                    <TableCell>{row.is_published ? "Publicado" : "Rascunho"}</TableCell>
                     <TableCell>
                       {row.published_at ? new Date(row.published_at).toLocaleString() : "-"}
                     </TableCell>
                     <TableCell className="flex gap-2">
                       <Button asChild variant="outline" size="sm">
                         <Link to={`/blog/${row.slug}`} target="_blank" rel="noreferrer">
-                          View
+                          Ver
                         </Link>
                       </Button>
                       <Button variant="secondary" size="sm" onClick={() => startEdit(row)}>
-                        Edit
+                        Editar
                       </Button>
                       <ConfirmDeleteButton
-    entityName={`blog post "${row.title_pt || row.title_es || row.slug}"`}
+    triggerLabel="Apagar"
+    confirmLabel="Apagar"
+    entityName={`post do blog "${row.title_pt || row.title_es || row.slug}"`}
     onConfirm={() => onDelete(row.id)}
   />
                     </TableCell>
@@ -166,28 +168,28 @@ const Blogs = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>{editingId ? "Update Blog Post" : "Create Blog Post"}</CardTitle>
+          <CardTitle>{editingId ? "Atualizar post do blog" : "Criar post do blog"}</CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           <Input
-    placeholder="Slug (optional)"
+    placeholder="Slug (opcional)"
     value={form.slug}
     onChange={(event) => setForm((prev) => ({ ...prev, slug: event.target.value }))}
   />
           <div className="flex items-center gap-3">
-            <span className="text-sm">Published</span>
+            <span className="text-sm">Publicado</span>
             <Switch
     checked={form.is_published}
     onCheckedChange={(checked) => setForm((prev) => ({ ...prev, is_published: checked }))}
   />
           </div>
           <Input
-    placeholder="Title PT"
+    placeholder="Título PT"
     value={form.title_pt}
     onChange={(event) => setForm((prev) => ({ ...prev, title_pt: event.target.value }))}
   />
           <Input
-    placeholder="Title ES"
+    placeholder="Título ES"
     value={form.title_es}
     onChange={(event) => setForm((prev) => ({ ...prev, title_es: event.target.value }))}
   />
@@ -197,7 +199,7 @@ const Blogs = () => {
     onChange={(event) => setForm((prev) => ({ ...prev, published_at: event.target.value }))}
   />
           <Input
-    placeholder="Cover image URL"
+    placeholder="URL da imagem de capa"
     value={form.cover_image_url}
     onChange={(event) => setForm((prev) => ({ ...prev, cover_image_url: event.target.value }))}
   />
@@ -210,41 +212,41 @@ const Blogs = () => {
           {form.cover_image_url ? <div className="md:col-span-2 flex items-center gap-3">
               <img
     src={resolveApiFileUrl(form.cover_image_url)}
-    alt="Blog cover preview"
+    alt="Pré-visualização da capa do blog"
     className="h-16 w-16 rounded-md border object-cover"
   />
-              <p className="text-xs text-muted-foreground">Current cover preview</p>
+              <p className="text-xs text-muted-foreground">Pré-visualização da capa</p>
             </div> : null}
           <Textarea
-    placeholder="Excerpt PT"
+    placeholder="Resumo PT"
     value={form.excerpt_pt}
     onChange={(event) => setForm((prev) => ({ ...prev, excerpt_pt: event.target.value }))}
     className="md:col-span-2 min-h-20"
   />
           <Textarea
-    placeholder="Excerpt ES"
+    placeholder="Resumo ES"
     value={form.excerpt_es}
     onChange={(event) => setForm((prev) => ({ ...prev, excerpt_es: event.target.value }))}
     className="md:col-span-2 min-h-20"
   />
           <Textarea
-    placeholder="Content PT"
+    placeholder="Conteúdo PT"
     value={form.content_pt}
     onChange={(event) => setForm((prev) => ({ ...prev, content_pt: event.target.value }))}
     className="md:col-span-2 min-h-32"
   />
           <Textarea
-    placeholder="Content ES"
+    placeholder="Conteúdo ES"
     value={form.content_es}
     onChange={(event) => setForm((prev) => ({ ...prev, content_es: event.target.value }))}
     className="md:col-span-2 min-h-32"
   />
           <div className="md:col-span-2 flex gap-2">
             <Button onClick={() => void onSubmit()} disabled={submitting}>
-              {submitting ? "Saving..." : editingId ? "Update" : "Create"}
+              {submitting ? "A guardar..." : editingId ? "Atualizar" : "Criar"}
             </Button>
             {editingId ? <Button variant="outline" onClick={resetForm} disabled={submitting}>
-                Cancel
+                Cancelar
               </Button> : null}
           </div>
         </CardContent>

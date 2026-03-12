@@ -9,14 +9,14 @@ import { adminApi } from "@/lib/adminApi";
 
 const MODULES_UPDATED_EVENT = "admin:modules-updated";
 const moduleItems = [
-  { label: "Products", key: "product" },
-  { label: "Orders", key: "order" },
-  { label: "Payments", key: "payment" },
-  { label: "Discounts", key: "discount" },
-  { label: "Shipping", key: "shipping" },
-  { label: "Invoices", key: "invoice" },
-  { label: "Reports", key: "report" },
-  { label: "Customers", key: "customers" },
+  { label: "Produtos", key: "product" },
+  { label: "Encomendas", key: "order" },
+  { label: "Pagamentos", key: "payment" },
+  { label: "Descontos", key: "discount" },
+  { label: "Envios", key: "shipping" },
+  { label: "Faturas", key: "invoice" },
+  { label: "Relatórios", key: "report" },
+  { label: "Clientes", key: "customers" },
 ];
 
 const Settings = () => {
@@ -143,10 +143,10 @@ const Settings = () => {
         setModulesState(nextModules);
         window.dispatchEvent(new CustomEvent(MODULES_UPDATED_EVENT, { detail: { modules: nextModules } }));
       }
-      setMessage(`${moduleKey} module ${checked ? "enabled" : "disabled"}.`);
+      setMessage(`Módulo ${moduleKey} ${checked ? "ativo" : "inativo"}.`);
     } catch (saveError) {
       setModulesState((prev) => ({ ...prev, [moduleKey]: previous }));
-      setError(saveError instanceof Error ? saveError.message : "Failed to update module.");
+      setError(saveError instanceof Error ? saveError.message : "Falha ao atualizar módulo.");
     } finally {
       setSavingKey("");
     }
@@ -155,8 +155,8 @@ const Settings = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="System Settings"
-        description="Configure site-wide settings, VAT, email, and module access."
+        title="Definições do sistema"
+        description="Configure nome do site, IVA, email e ativação de módulos."
         actions={
           <Button
             variant="outline"
@@ -164,7 +164,7 @@ const Settings = () => {
             disabled={loadingGeneralSettings || savingGeneralSettings || !hasGeneralSettingsChanges}
           >
             <Sliders className="mr-2 h-4 w-4" />
-            {savingGeneralSettings ? "Saving..." : "Save Settings"}
+            {savingGeneralSettings ? "A guardar..." : "Guardar definições"}
           </Button>
         }
       />
@@ -172,12 +172,12 @@ const Settings = () => {
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <Card className="border-border/60 bg-card/90">
           <CardHeader>
-            <CardTitle className="font-display text-xl">General Settings</CardTitle>
-            <CardDescription>Core platform configuration.</CardDescription>
+            <CardTitle className="font-display text-xl">Definições gerais</CardTitle>
+            <CardDescription>Configuração base da plataforma.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Site Name</label>
+              <label className="text-sm font-medium">Nome do site</label>
               <Input
                 value={generalSettings.site_name}
                 onChange={(event) =>
@@ -188,7 +188,7 @@ const Settings = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Currency</label>
+              <label className="text-sm font-medium">Moeda</label>
               <Input
                 value={generalSettings.currency}
                 onChange={(event) =>
@@ -199,7 +199,7 @@ const Settings = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">VAT Configuration</label>
+              <label className="text-sm font-medium">Configuração de IVA</label>
               <Input
                 value={generalSettings.vat_configuration}
                 onChange={(event) =>
@@ -210,7 +210,7 @@ const Settings = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Email Settings</label>
+              <label className="text-sm font-medium">Definições de email</label>
               <Input
                 value={generalSettings.email_settings}
                 onChange={(event) =>
@@ -226,9 +226,9 @@ const Settings = () => {
 
       <Card className="border-border/60 bg-card/90">
         <CardHeader>
-          <CardTitle className="font-display text-xl">Module Activation</CardTitle>
-          <CardDescription>Control which modules are active.</CardDescription>
-          {loadingModules ? <p className="text-sm text-muted-foreground">Loading module settings...</p> : null}
+          <CardTitle className="font-display text-xl">Ativação de módulos</CardTitle>
+          <CardDescription>Controle quais módulos ficam ativos.</CardDescription>
+          {loadingModules ? <p className="text-sm text-muted-foreground">A carregar módulos...</p> : null}
           {message ? <p className="text-sm text-emerald-700">{message}</p> : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
         </CardHeader>

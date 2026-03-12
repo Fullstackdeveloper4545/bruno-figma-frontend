@@ -14,24 +14,24 @@ const Attributes = () => {
     void load();
   }, []);
   return <div className='space-y-6'>
-      <PageHeader title='Attribute Management' description='CRUD attributes (size, color, etc.).' />
+      <PageHeader title='Gestão de atributos' description='Criar/editar atributos (tamanho, cor, etc.).' />
       <Card>
-        <CardHeader><CardTitle>Attributes</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Atributos</CardTitle></CardHeader>
         <CardContent>
-          <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>PT</TableHead><TableHead>ES</TableHead><TableHead>Actions</TableHead></TableRow></TableHeader>
-            <TableBody>{rows.map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name_pt}</TableCell><TableCell>{row.name_es}</TableCell><TableCell><ConfirmDeleteButton entityName={`attribute "${row.name_pt || row.name_es || row.id}"`} onConfirm={() => adminApi.deleteAttribute(row.id).then(load)} /></TableCell></TableRow>)}</TableBody>
+          <Table><TableHeader><TableRow><TableHead>ID</TableHead><TableHead>PT</TableHead><TableHead>ES</TableHead><TableHead>Ações</TableHead></TableRow></TableHeader>
+            <TableBody>{rows.map((row) => <TableRow key={row.id}><TableCell>{row.id}</TableCell><TableCell>{row.name_pt}</TableCell><TableCell>{row.name_es}</TableCell><TableCell><ConfirmDeleteButton entityName={`atributo "${row.name_pt || row.name_es || row.id}"`} onConfirm={() => adminApi.deleteAttribute(row.id).then(load)} /></TableCell></TableRow>)}</TableBody>
           </Table>
         </CardContent>
       </Card>
       <Card>
-        <CardHeader><CardTitle>Create Attribute</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Criar atributo</CardTitle></CardHeader>
         <CardContent className='grid gap-3 md:grid-cols-3'>
-          <Input placeholder='Name PT' value={form.name_pt} onChange={(e) => setForm((p) => ({ ...p, name_pt: e.target.value }))} />
-          <Input placeholder='Name ES' value={form.name_es} onChange={(e) => setForm((p) => ({ ...p, name_es: e.target.value }))} />
+          <Input placeholder='Nome PT' value={form.name_pt} onChange={(e) => setForm((p) => ({ ...p, name_pt: e.target.value }))} />
+          <Input placeholder='Nome ES' value={form.name_es} onChange={(e) => setForm((p) => ({ ...p, name_es: e.target.value }))} />
           <Button onClick={() => void adminApi.createAttribute(form).then(() => {
     setForm({ name_pt: "", name_es: "" });
     return load();
-  })}>Save</Button>
+  })}>Guardar</Button>
         </CardContent>
       </Card>
     </div>;

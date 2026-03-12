@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { FileDown } from "lucide-react";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { ConfirmDeleteButton } from "@/components/admin/ConfirmDeleteButton";
 import { Button } from "@/components/ui/button";
@@ -25,70 +24,69 @@ const Reports = () => {
   }, []);
   return <div className='space-y-8'>
       <PageHeader
-    title='Reports and Analytics'
-    description='Configure daily pending-order reports by store and UTC time.'
-    actions={<Button variant='outline' onClick={() => void adminApi.runReportsNow().then(() => setMessage("Ran due report schedules now"))}>
-            <FileDown className='mr-2 h-4 w-4' />
-            Run Due Reports
-          </Button>}
+    title='Relatórios e analítica'
+    description='Configure diariamente relatórios para as suas lojas.'
   />
 
       {message ? <p className='text-sm'>{message}</p> : null}
 
-      <Card>
+      <Card className='rounded-[28px] bg-zinc-100'>
         <CardHeader>
-          <CardTitle>Create Daily Report Schedule</CardTitle>
+          <CardTitle>Crie Relatórios Diários</CardTitle>
         </CardHeader>
-        <CardContent className='grid gap-3 md:grid-cols-4'>
+        <CardContent className='grid gap-6 md:grid-cols-4'>
           <select
-    className='rounded-md border bg-background px-3 py-2 text-sm'
+    className='h-12 w-full rounded-xl border border-slate-400/60 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-slate-500'
     value={form.store_id}
     onChange={(e) => setForm((prev) => ({ ...prev, store_id: e.target.value }))}
   >
-            <option value=''>Select store</option>
+            <option value=''>Selecionar loja</option>
             {stores.map((store) => <option key={store.id} value={store.id}>
                 {store.name}
               </option>)}
           </select>
           <Input
+    className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0'
     placeholder='HH:MM (UTC)'
     value={form.send_time_utc}
     onChange={(e) => setForm((prev) => ({ ...prev, send_time_utc: e.target.value }))}
   />
           <Input
+    className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0'
     placeholder='recipient@email.com'
     value={form.recipient_email}
     onChange={(e) => setForm((prev) => ({ ...prev, recipient_email: e.target.value }))}
   />
           <Button
+    className='!h-12 !rounded-xl !bg-black !text-white hover:!bg-black/90'
     onClick={() => void adminApi.createReportSchedule({
       store_id: Number(form.store_id),
       send_time_utc: form.send_time_utc,
       recipient_email: form.recipient_email,
       report_type: "pending_orders",
       is_active: true
-    }).then(() => load()).then(() => setForm({ store_id: "", send_time_utc: "09:00", recipient_email: "" })).then(() => setMessage("Schedule saved"))}
+    }).then(() => load()).then(() => setForm({ store_id: "", send_time_utc: "09:00", recipient_email: "" })).then(() => setMessage("Agendamento guardado"))}
   >
-            Save
+            Guardar
           </Button>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className='rounded-[28px] bg-zinc-100'>
         <CardHeader>
-          <CardTitle>Report Schedules</CardTitle>
+          <CardTitle>Agendamentos de relatórios</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>ID</TableHead>
-                <TableHead>Store</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>UTC Time</TableHead>
+                <TableHead>Loja</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Hora UTC</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead>Last Sent</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead>Último envio</TableHead>
+                <TableHead>Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -100,11 +98,11 @@ const Reports = () => {
                   <TableCell>{schedule.recipient_email}</TableCell>
                   <TableCell>{schedule.last_sent_date || "-"}</TableCell>
                   <TableCell className='flex gap-2'>
-                    <Button variant='outline' size='sm' onClick={() => void adminApi.runReportsNow(schedule.id).then(() => setMessage(`Schedule ${schedule.id} executed`))}>
-                      Run
+                    <Button className='!h-10 !rounded-md !bg-zinc-400 !px-6 !text-white hover:!bg-zinc-500' size='sm' onClick={() => void adminApi.runReportsNow(schedule.id).then(() => setMessage(`Agendamento ${schedule.id} executado`))}>
+                      Executar
                     </Button>
                     <ConfirmDeleteButton
-    entityName={`report schedule #${schedule.id}`}
+    entityName={`agendamento #${schedule.id}`}
     onConfirm={() => adminApi.deleteReportSchedule(schedule.id).then(load)}
   />
                   </TableCell>

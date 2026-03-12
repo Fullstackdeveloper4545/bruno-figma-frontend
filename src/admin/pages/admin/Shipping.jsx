@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { PackageSearch } from "lucide-react";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,78 +21,76 @@ const Shipping = () => {
   }, []);
   return <div className='space-y-8'>
       <PageHeader
-    title='Shipping Management'
-    description='CTT integration: label generation, tracking retrieval, and shipment status updates.'
-    actions={<Button variant='outline' onClick={() => void load()}>
-            Refresh Shipments
-          </Button>}
+    title='Gestão de Envios'
+    description='Faça a gestão de integrações, criação de etiquetas, tracking e atualize os seus envios.'
   />
 
       {message ? <p className='text-sm'>{message}</p> : null}
 
-      <Card>
+      <Card className='rounded-[28px] bg-zinc-100'>
         <CardHeader>
-          <CardTitle>Generate CTT Label</CardTitle>
+          <CardTitle className='text-2xl font-normal'>Criar etiqueta</CardTitle>
         </CardHeader>
-        <CardContent className='grid gap-3 md:grid-cols-2'>
-          <Input placeholder='Order ID' value={orderId} onChange={(e) => setOrderId(e.target.value)} />
+        <CardContent className='grid gap-6 md:grid-cols-2'>
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='ID da encomenda' value={orderId} onChange={(e) => setOrderId(e.target.value)} />
           <select
-    className='rounded-md border bg-background px-3 py-2 text-sm'
+    className='h-12 rounded-xl border border-slate-400/60 bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-slate-500'
     value={status}
     onChange={(e) => setStatus(e.target.value)}
   >
-            <option value='label_created'>Label Created</option>
-            <option value='shipped'>Shipped</option>
-            <option value='in_transit'>In Transit</option>
-            <option value='out_for_delivery'>Out for Delivery</option>
-            <option value='delivered'>Delivered</option>
-            <option value='cancelled'>Cancelled</option>
+            <option value='label_created'>Etiqueta criada</option>
+            <option value='shipped'>Enviado</option>
+            <option value='in_transit'>Em trânsito</option>
+            <option value='out_for_delivery'>Para entrega</option>
+            <option value='delivered'>Entregue</option>
+            <option value='cancelled'>Cancelado</option>
           </select>
-          <Input placeholder='Location (optional)' value={location} onChange={(e) => setLocation(e.target.value)} />
-          <Input placeholder='Description (optional)' value={description} onChange={(e) => setDescription(e.target.value)} />
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Localização (opcional)' value={location} onChange={(e) => setLocation(e.target.value)} />
+          <Input className='h-12 rounded-xl border-slate-400/60 focus:border-slate-500 focus:ring-0' placeholder='Descrição (opcional)' value={description} onChange={(e) => setDescription(e.target.value)} />
           <div className='flex flex-wrap gap-2 md:col-span-2'>
           <Button
-    onClick={() => void adminApi.generateShippingLabel(Number(orderId)).then(() => load()).then(() => setMessage("Label generated")).catch((e) => setMessage(e instanceof Error ? e.message : "Failed to generate label"))}
+    className='!h-10 !rounded-md !bg-black !px-6 !text-white hover:!bg-black/90'
+    onClick={() => void adminApi.generateShippingLabel(Number(orderId)).then(() => load()).then(() => setMessage("Etiqueta gerada")).catch((e) => setMessage(e instanceof Error ? e.message : "Falha ao gerar etiqueta"))}
   >
-            Generate Label
+            Criar Etiqueta
           </Button>
           <Button
-    variant='outline'
-    onClick={() => void adminApi.getOrderTracking(Number(orderId)).then((result) => setMessage(`Tracking: ${result.tracking_code || "N/A"}`)).catch((e) => setMessage(e instanceof Error ? e.message : "Tracking lookup failed"))}
+    className='!h-10 !rounded-md !bg-zinc-400 !px-6 !text-white hover:!bg-zinc-500'
+    onClick={() => void adminApi.getOrderTracking(Number(orderId)).then((result) => setMessage(`Tracking: ${result.tracking_code || "N/A"}`)).catch((e) => setMessage(e instanceof Error ? e.message : "Falha ao consultar tracking"))}
   >
-            <PackageSearch className='mr-2 h-4 w-4' />
-            Track Order
+            Localizar Encomenda
           </Button>
           <Button
-    variant='secondary'
+    className='!h-10 !rounded-md !bg-zinc-400 !px-6 !text-white hover:!bg-zinc-500'
     onClick={() => void adminApi.updateOrderTrackingStatus(Number(orderId), {
       status,
       location: location.trim() || void 0,
       description: description.trim() || void 0
     }).then(
-      (result) => setMessage(`Tracking updated: ${result.status || status}`)
-    ).then(() => load()).catch((e) => setMessage(e instanceof Error ? e.message : "Failed to update tracking"))}
+      (result) => setMessage(`Tracking atualizado: ${result.status || status}`)
+    ).then(() => load()).catch((e) => setMessage(e instanceof Error ? e.message : "Falha ao atualizar tracking"))}
   >
-            Update Tracking Status
+            Atualizar Estado
           </Button>
           </div>
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className='rounded-[28px] bg-zinc-100'>
         <CardHeader>
-          <CardTitle>Shipment Logs</CardTitle>
+          <CardTitle>Registos de envios</CardTitle>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Shipment</TableHead>
-                <TableHead>Order</TableHead>
-                <TableHead>Provider</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Envio</TableHead>
+                <TableHead>Encomenda</TableHead>
+                {/* <TableHead>Transportador</TableHead> */}
+                <TableHead>Fornecedor</TableHead>
+                <TableHead>Estado</TableHead>
                 <TableHead>Tracking</TableHead>
-                <TableHead>Label</TableHead>
+                <TableHead>Etiqueta</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -105,7 +102,7 @@ const Shipping = () => {
                   <TableCell>{shipment.tracking_code || "-"}</TableCell>
                   <TableCell>
                     {shipment.label_url ? <a href={shipment.label_url} target='_blank' rel='noreferrer' className='text-primary underline'>
-                        Open
+                        Abrir
                       </a> : "-"}
                   </TableCell>
                 </TableRow>)}

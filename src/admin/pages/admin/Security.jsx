@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { LogOut, ShieldCheck } from "lucide-react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/admin/components/admin/PageHeader";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -11,9 +10,21 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { adminApi } from "@/lib/adminApi";
 import { useAdminAuth, ADMIN_EMAIL } from "@/contexts/AdminAuthContext";
 
-const Security = () => {
+function formatLoginDate(value) {
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat("pt-PT", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
+export default function Security() {
   const navigate = useNavigate();
   const { logout } = useAdminAuth();
+
   const [loginActivity, setLoginActivity] = useState([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
   const [activityError, setActivityError] = useState("");
@@ -24,17 +35,6 @@ const Security = () => {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [savingPassword, setSavingPassword] = useState(false);
-
-  const formatLoginDate = (value) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return String(value);
-    return new Intl.DateTimeFormat("pt-PT", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    }).format(date);
-  };
 
   const loadLoginActivity = async () => {
     try {
@@ -64,10 +64,11 @@ const Security = () => {
       }
     }
   }, []);
- 
+
   const handleChangePassword = async () => {
     setPasswordError("");
     setPasswordSuccess("");
+
     if (!currentPassword.trim() || !newPassword.trim()) {
       setPasswordError("Preencha a palavra-passe atual e a nova palavra-passe.");
       return;
@@ -76,12 +77,13 @@ const Security = () => {
       setPasswordError("A nova palavra-passe deve ter pelo menos 6 caracteres.");
       return;
     }
+
     try {
       setSavingPassword(true);
       await adminApi.changeAdminPassword({
         email: adminEmail.trim(),
         current_password: currentPassword,
-        new_password: newPassword
+        new_password: newPassword,
       });
       setPasswordSuccess("Palavra-passe atualizada com sucesso.");
       setCurrentPassword("");
@@ -97,17 +99,16 @@ const Security = () => {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="SeguranÃ§a do Admin"
-        description="Gira autenticaÃ§Ã£o, sessÃµes e controlos de acesso."
+        title="Segurança do Admin"
+        description="Gira autenticação, sessões e controlos de acesso."
         actions={
           <Button
-            variant="outline"
+            className="!h-10 !w-28 !justify-center !rounded-md !bg-black !text-white hover:!bg-black/90"
             onClick={() => {
               logout();
               navigate("/", { replace: true });
             }}
           >
-            <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         }
@@ -143,16 +144,12 @@ const Security = () => {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Tempo de sessÃ£o</label>
-              <Input
-                placeholder="30 minutos"
-                value={sessionTime}
-                onChange={(e) => setSessionTime(e.target.value)}
-              />
+              <label className="text-sm font-medium">Tempo de sessão</label>
+              <Input placeholder="30 minutos" value={sessionTime} onChange={(e) => setSessionTime(e.target.value)} />
             </div>
             {passwordError ? <p className="text-sm text-destructive">{passwordError}</p> : null}
             {passwordSuccess ? <p className="text-sm text-emerald-600">{passwordSuccess}</p> : null}
-            <Button disabled={savingPassword} onClick={() => void handleChangePassword()}>
+            <Button className="!h-10 !w-56 !justify-center !rounded-md !bg-black !text-white hover:!bg-black/90" disabled={savingPassword} onClick={() => void handleChangePassword()}>
               {savingPassword ? "A guardar..." : "Guardar palavra-passe"}
             </Button>
           </CardContent>
@@ -160,14 +157,14 @@ const Security = () => {
 
         <Card className="border-border/60 bg-card/90">
           <CardHeader>
-            <CardTitle className="font-display text-xl">Melhorias de seguranÃ§a</CardTitle>
-            <CardDescription>ProteÃ§Ãµes opcionais para preparar o futuro.</CardDescription>
+            <CardTitle className="font-display text-xl">Melhorias de segurança</CardTitle>
+            <CardDescription>Proteções opcionais para preparar o futuro.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center justify-between rounded-lg border border-border/60 bg-background/70 p-3">
               <div>
-                <p className="text-sm font-medium">AutenticaÃ§Ã£o de dois fatores</p>
-                <p className="text-xs text-muted-foreground">VerificaÃ§Ã£o adicional de login</p>
+                <p className="text-sm font-medium">Autenticação de dois fatores</p>
+                <p className="text-xs text-muted-foreground">Verificação adicional de login</p>
               </div>
               <Switch />
             </div>
@@ -178,9 +175,8 @@ const Security = () => {
               </div>
               <Switch />
             </div>
-            <Button variant="outline" className="w-full">
-              <ShieldCheck className="mr-2 h-4 w-4" />
-              Rever polÃ­ticas
+            <Button className="!h-10 !w-full !justify-center !rounded-md !bg-black !text-white hover:!bg-black/90">
+              Rever políticas
             </Button>
           </CardContent>
         </Card>
@@ -196,7 +192,7 @@ const Security = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Data</TableHead>
-                <TableHead>LocalizaÃ§Ã£o</TableHead>
+                <TableHead>Localização</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
@@ -221,11 +217,8 @@ const Security = () => {
                 </TableRow>
               ) : (
                 loginActivity.map((entry, index) => {
-                  const displayDate = formatLoginDate(
-                    entry.date || entry.created_at || entry.logged_at || entry.timestamp
-                  );
-                  const location =
-                    entry.location || entry.city || entry.store_name || entry.store || "-";
+                  const displayDate = formatLoginDate(entry.date || entry.created_at || entry.logged_at || entry.timestamp);
+                  const location = entry.location || entry.city || entry.store_name || entry.store || "-";
                   const statusValue = (entry.status || entry.result || entry.outcome || "Desconhecido").toString();
 
                   return (
@@ -245,9 +238,4 @@ const Security = () => {
       </Card>
     </div>
   );
-};
-
-var stdin_default = Security;
-export {
-  stdin_default as default
-};
+}
